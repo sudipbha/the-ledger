@@ -1,7 +1,8 @@
 """Second QA pass: feed the real code path real RSS/Atom, by intercepting the
 CORS relay request and answering with feeds captured from the live web.
-Proves parsing, sectioning, dedupe, full-text detection, copy and TTS chunking
-against actual publisher output rather than a mock."""
+Proves parsing, sectioning, dedupe, the editorial mix, the licence model
+(full republication only where permitted, summary-and-context otherwise),
+copy and TTS chunking against actual publisher output rather than a mock."""
 import asyncio, http.server, socketserver, threading, os, functools, sys, urllib.parse
 from playwright.async_api import async_playwright
 
@@ -97,14 +98,21 @@ async def main():
         ok("no duplicate headlines", data["dupes"] == 0, data["dupes"])
         print("   sample:", *data["sampleTitles"], sep="\n     ")
 
-        # open a genuinely full-text article and check the reading experience
+        # editorial mix over real feeds
+        mix = await page.evaluate("() => { S.section='Front page'; S.query=''; render(); return S.mix; }")
+        ok("front-page mix follows the editorial strategy",
+           bool(mix) and 0.55 <= mix["news"]/mix["total"] <= 0.75
+                     and 0.15 <= mix["analysis"]/mix["total"] <= 0.35
+                     and 0.05 <= mix["deep"]/mix["total"] <= 0.20, mix)
+
+        # a licensed article (The Conversation fixture, CC BY-ND) republishes in full
         target = await page.evaluate("""() => {
-          const it = S.items.filter(i=>!i.demo && i.fullText).sort((a,b)=>b.words-a.words)[0];
+          const it = S.items.filter(i=>!i.demo && !i.ledger && i.republish).sort((a,b)=>b.words-a.words)[0];
           if(!it) return null; openReader(it);
-          return {title:it.title, words:it.words, source:it.source};
+          return {title:it.title, words:it.words, source:it.source, lic:it.lic};
         }""")
-        ok("a long full-text article opens", bool(target),
-           target and f"{target['source']} — {target['words']} words")
+        ok("a licensed full-text article opens in full", bool(target),
+           target and f"{target['source']} ({target['lic']}) — {target['words']} words")
         await page.wait_for_timeout(600)
         paras = await page.locator("#rwrap .rbody p").count()
         ok("article body renders as paragraphs", paras >= 4, f"{paras} paragraphs")
@@ -131,6 +139,22 @@ async def main():
         }""")
         ok("long article splits into queued chunks", ch["chunks"] >= 1 and ch["max"] <= 3800,
            f"{ch['chars']} chars → {ch['chunks']} chunks, max {ch['max']}")
+
+        # an unlicensed full-text feed (e.g. Noahpinion) is presented as The Ledger's
+        # summary with a short quote and a route out — never reprinted wholesale
+        summ = await page.evaluate("""() => {
+          closeReader();
+          const it = S.items.filter(i=>!i.demo && !i.ledger && i.fullText && !i.republish)
+                            .sort((a,b)=>b.words-a.words)[0];
+          if(!it) return null; openReader(it);
+          const rb = document.querySelector('#rwrap .rbody').innerText;
+          return {source:it.source, words:it.words, full:it.text.length, rendered:rb.length,
+                  wim: !!document.querySelector('#rwrap .wimbox'),
+                  cta: !!document.querySelector('#rwrap .srccta a')};
+        }""")
+        ok("unlicensed full text presented as summary, not reprint",
+           bool(summ) and summ["rendered"] < summ["full"] * 0.4 and summ["wim"] and summ["cta"],
+           summ and f"{summ['source']}: {summ['words']} words → {summ['rendered']} chars shown")
 
         await page.screenshot(path=os.path.join(ROOT,"shot-live-article.png"))
         await page.locator("#rBack").click()

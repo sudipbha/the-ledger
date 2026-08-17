@@ -147,6 +147,18 @@ article.card.read .hl,article.card.read .standfirst{opacity:.55}
 .savebtn[aria-pressed="true"]{color:var(--accent-2)}
 .savebtn svg{width:19px;height:19px}
 
+/* editorial furniture: the why-it-matters card and the weekly deep dive */
+article.card.wim{
+  border-left:3px solid var(--accent-2);background:var(--paper-2);
+  padding:16px 16px 16px 14px;border-radius:0 10px 10px 0;margin:10px 0;
+}
+.wimlabel{font-family:var(--ui);font-size:.63rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--accent-2);margin:0 0 8px}
+article.card.wim .hl{font-size:clamp(1.1rem,4.4vw,1.3rem)}
+.wimnote{color:var(--ink-2);font-size:.95rem;line-height:1.55;margin:8px 0 0;font-style:italic}
+article.card.weekly{border-top:3px double var(--rule-2);border-bottom:3px double var(--rule-2);padding:20px 0;margin:8px 0}
+.weeklylabel{font-family:var(--ui);font-size:.63rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);margin:0 0 8px}
+article.card.weekly .hl{font-size:clamp(1.4rem,5.6vw,1.8rem)}
+
 .railhead{font-family:var(--ui);font-size:.66rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--ink);border-top:3px double var(--rule-2);padding-top:10px;margin:26px 0 4px}
 ol.rail{list-style:none;margin:0;padding:0;counter-reset:r}
 ol.rail li{counter-increment:r;display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--rule);cursor:pointer;align-items:flex-start}
@@ -191,6 +203,19 @@ ol.rail .hl{font-size:1rem;line-height:1.25}
 .rule{border:0;border-top:3px double var(--rule-2);margin:30px 0}
 .srcbox{font-family:var(--ui);font-size:.82rem;color:var(--ink-3);line-height:1.5}
 .srcbox a{color:var(--accent);font-weight:600}
+
+/* reader: the attributed quote, the Ledger's context box, attribution */
+.quotebox{margin:1.4em 0;padding:0}
+.quotebox blockquote{margin:0;padding:2px 0 2px 16px;border-left:3px solid var(--accent-2);font-family:var(--display);font-size:1.16em;line-height:1.4;font-style:italic;color:var(--ink)}
+.quotebox figcaption{font-family:var(--ui);font-size:.72rem;color:var(--ink-3);margin-top:8px}
+.wimbox{border:1px solid var(--rule-2);border-left:3px solid var(--accent-2);border-radius:0 12px 12px 0;background:var(--paper-2);padding:16px 18px;margin:26px 0}
+.wimbox h3{font-family:var(--ui);font-size:.66rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--accent-2);margin:0 0 8px}
+.wimbox p{margin:0;font-size:.98rem;line-height:1.6}
+.wimbox .wimsig{font-family:var(--ui);font-size:.72rem;color:var(--ink-3);margin-top:8px}
+.attrline{font-family:var(--ui);font-size:.8rem;color:var(--ink-3);line-height:1.55;margin:22px 0 0}
+.attrline a{color:var(--accent);font-weight:600}
+.srccta{margin:16px 0 0}
+.srccta .btn{text-decoration:none}
 
 /* audio dock */
 #dock{
@@ -423,39 +448,53 @@ ol.rail .hl{font-size:1rem;line-height:1.25}
 /* Every feed below was checked by hand: public, free to read, no paywall and no
    login. h:true marks a heavy full-text feed, fetched in a second wave so the
    front page appears fast.  (Nothing from the FT, WSJ, Bloomberg or The
-   Economist is included by design.) */
+   Economist is included by design.)
+
+   k is the editorial kind, which drives the front-page mix:
+     "news"      — timely reporting; sixty to seventy per cent of the front page
+     "analysis"  — the why-it-matters layer; twenty to thirty per cent
+     "deep"      — expert, research-grade work; ten to fifteen per cent
+
+   lic marks the few sources whose work The Ledger may lawfully republish in
+   full, and names the licence shown beside it. Everything else — however open
+   the feed, however careful the credit — is presented as The Ledger's own
+   summary with a short attributed quote and a link out. A public feed is an
+   invitation to read, not a licence to republish. */
 const SOURCES = [
   // ---- news desks with open feeds ----
-  {n:"CNBC Markets",       u:"https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664", s:"Markets", q:0.9},
-  {n:"CNBC Economy",       u:"https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=20910258", s:"Economics", q:0.95},
-  {n:"MarketWatch",        u:"https://feeds.content.dowjones.io/public/rss/mw_topstories", s:"Markets", q:0.95},
-  {n:"Yahoo Finance",      u:"https://finance.yahoo.com/news/rssindex",                   s:"Markets", q:0.85},
-  {n:"Business Insider",   u:"https://markets.businessinsider.com/rss/news",              s:"Markets", q:0.85},
-  {n:"BBC Business",       u:"https://feeds.bbci.co.uk/news/business/rss.xml",            s:"Companies", q:1.0},
-  {n:"The Guardian",       u:"https://www.theguardian.com/uk/business/rss",               s:"Companies", h:true, q:1.05},
-  {n:"Fortune",            u:"https://fortune.com/feed/fortune-feeds/?id=3230629",        s:"Companies", h:true, q:1.0},
-  {n:"Semafor Business",   u:"https://www.semafor.com/rss.xml",                           s:"Companies", h:true, q:1.05},
+  {n:"CNBC Markets",       u:"https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664", s:"Markets", q:0.9, k:"news"},
+  {n:"CNBC Economy",       u:"https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=20910258", s:"Economics", q:0.95, k:"news"},
+  {n:"MarketWatch",        u:"https://feeds.content.dowjones.io/public/rss/mw_topstories", s:"Markets", q:0.95, k:"news"},
+  {n:"Yahoo Finance",      u:"https://finance.yahoo.com/news/rssindex",                   s:"Markets", q:0.85, k:"news"},
+  {n:"Business Insider",   u:"https://markets.businessinsider.com/rss/news",              s:"Markets", q:0.85, k:"news"},
+  {n:"BBC Business",       u:"https://feeds.bbci.co.uk/news/business/rss.xml",            s:"Companies", q:1.0, k:"news"},
+  {n:"The Guardian",       u:"https://www.theguardian.com/uk/business/rss",               s:"Companies", h:true, q:1.05, k:"news"},
+  {n:"Fortune",            u:"https://fortune.com/feed/fortune-feeds/?id=3230629",        s:"Companies", h:true, q:1.0, k:"news"},
+  {n:"Semafor Business",   u:"https://www.semafor.com/rss.xml",                           s:"Companies", h:true, q:1.05, k:"news"},
+  // ---- startups & AI ----
+  {n:"TechCrunch",         u:"https://techcrunch.com/feed/",                              s:"Tech & Finance", q:0.95, k:"news"},
+  {n:"VentureBeat AI",     u:"https://venturebeat.com/category/ai/feed/",                 s:"Tech & Finance", q:0.9, k:"news"},
   // ---- central banks & official research ----
-  {n:"Federal Reserve",    u:"https://www.federalreserve.gov/feeds/press_all.xml",        s:"Central Banks", q:1.15},
-  {n:"Fed Speeches",       u:"https://www.federalreserve.gov/feeds/speeches.xml",         s:"Central Banks", q:1.15},
-  {n:"FEDS Notes",         u:"https://www.federalreserve.gov/feeds/feds_notes.xml",       s:"Economics", q:1.25},
-  {n:"ECB",                u:"https://www.ecb.europa.eu/rss/press.html",                  s:"Central Banks", q:1.15},
-  {n:"Bank of England",    u:"https://www.bankofengland.co.uk/rss/news",                  s:"Central Banks", q:1.15},
-  {n:"FRED Blog",          u:"https://fredblog.stlouisfed.org/feed/",                     s:"Economics", q:1.2},
+  {n:"Federal Reserve",    u:"https://www.federalreserve.gov/feeds/press_all.xml",        s:"Central Banks", q:1.15, k:"news", lic:"US government work, public domain"},
+  {n:"Fed Speeches",       u:"https://www.federalreserve.gov/feeds/speeches.xml",         s:"Central Banks", q:1.15, k:"news", lic:"US government work, public domain"},
+  {n:"FEDS Notes",         u:"https://www.federalreserve.gov/feeds/feds_notes.xml",       s:"Economics", q:1.25, k:"deep", lic:"US government work, public domain"},
+  {n:"ECB",                u:"https://www.ecb.europa.eu/rss/press.html",                  s:"Central Banks", q:1.15, k:"news", lic:"ECB — reproduction permitted with acknowledgement"},
+  {n:"Bank of England",    u:"https://www.bankofengland.co.uk/rss/news",                  s:"Central Banks", q:1.15, k:"news"},
+  {n:"FRED Blog",          u:"https://fredblog.stlouisfed.org/feed/",                     s:"Economics", q:1.2, k:"analysis"},
   // ---- Creative Commons / academic ----
-  {n:"The Conversation",   u:"https://theconversation.com/us/business/articles.atom",     s:"Opinion", h:true, q:1.2},
+  {n:"The Conversation",   u:"https://theconversation.com/us/business/articles.atom",     s:"Opinion", h:true, q:1.2, k:"deep", lic:"CC BY-ND 4.0"},
   // ---- independent analysts publishing in full ----
-  {n:"Calculated Risk",    u:"https://calculatedrisk.substack.com/feed",                  s:"Economics", h:true, q:1.25},
-  {n:"Marginal Revolution",u:"https://marginalrevolution.com/feed",                       s:"Economics", q:1.2},
-  {n:"Econbrowser",        u:"https://econbrowser.com/feed",                              s:"Economics", q:1.25},
-  {n:"Apricitas",          u:"https://www.apricitas.io/feed",                             s:"Economics", h:true, q:1.3},
-  {n:"Noahpinion",         u:"https://www.noahpinion.blog/feed",                          s:"Opinion", h:true, q:1.25},
-  {n:"Klement on Investing",u:"https://klementoninvesting.substack.com/feed",             s:"Opinion", h:true, q:1.25},
-  {n:"The Big Picture",    u:"https://ritholtz.com/feed/",                                s:"Opinion", h:true, q:1.15},
-  {n:"Damodaran",          u:"https://aswathdamodaran.blogspot.com/feeds/posts/default?alt=rss", s:"Opinion", h:true, q:1.3},
-  {n:"Abnormal Returns",   u:"https://abnormalreturns.com/feed/",                         s:"Markets", h:true, q:1.05},
-  {n:"A Wealth of Common Sense",u:"https://awealthofcommonsense.com/feed/",               s:"Personal Finance", q:1.2},
-  {n:"Of Dollars And Data",u:"https://ofdollarsanddata.com/feed/",                        s:"Personal Finance", h:true, q:1.2}
+  {n:"Calculated Risk",    u:"https://calculatedrisk.substack.com/feed",                  s:"Economics", h:true, q:1.25, k:"analysis"},
+  {n:"Marginal Revolution",u:"https://marginalrevolution.com/feed",                       s:"Economics", q:1.2, k:"analysis"},
+  {n:"Econbrowser",        u:"https://econbrowser.com/feed",                              s:"Economics", q:1.25, k:"deep"},
+  {n:"Apricitas",          u:"https://www.apricitas.io/feed",                             s:"Economics", h:true, q:1.3, k:"deep"},
+  {n:"Noahpinion",         u:"https://www.noahpinion.blog/feed",                          s:"Opinion", h:true, q:1.25, k:"analysis"},
+  {n:"Klement on Investing",u:"https://klementoninvesting.substack.com/feed",             s:"Opinion", h:true, q:1.25, k:"analysis"},
+  {n:"The Big Picture",    u:"https://ritholtz.com/feed/",                                s:"Opinion", h:true, q:1.15, k:"analysis"},
+  {n:"Damodaran",          u:"https://aswathdamodaran.blogspot.com/feeds/posts/default?alt=rss", s:"Opinion", h:true, q:1.3, k:"deep"},
+  {n:"Abnormal Returns",   u:"https://abnormalreturns.com/feed/",                         s:"Markets", h:true, q:1.05, k:"analysis"},
+  {n:"A Wealth of Common Sense",u:"https://awealthofcommonsense.com/feed/",               s:"Personal Finance", q:1.2, k:"analysis"},
+  {n:"Of Dollars And Data",u:"https://ofdollarsanddata.com/feed/",                        s:"Personal Finance", h:true, q:1.2, k:"analysis"}
 ];
 
 const SECTIONS = ["Front page","Markets","Companies","Economics","Central Banks","Opinion","Tech & Finance","Personal Finance","Saved"];
@@ -465,7 +504,7 @@ const TAGS = [
   ["Central Banks",/\b(fed|fomc|ecb|boe|boj|federal reserve|central bank(s|ing)?|monetary polic\w+|rate (cut|hike|rise|decision)s?|basis points|quantitative (easing|tightening)|policy rate)\b/gi],
   ["Companies",    /\b(earnings|revenues?|quarterly results|mergers?|acquisitions?|ipo|ceo|chief executive|layoffs?|guidance|buybacks?|dividends?|antitrust|takeovers?|profits?)\b/gi],
   ["Markets",      /\b(stocks?|equit\w+|bonds?|yields?|treasur\w+|s&p|nasdaq|dow|index(es)?|crude|oil price\w*|gold price\w*|currenc\w+|dollar|forex|commodit\w+|markets?|rall(y|ies)|sell-?off|volatilit\w+|credit spreads?)\b/gi],
-  ["Tech & Finance",/\b(ai|artificial intelligence|fintech|crypto\w*|bitcoin|ethereum|stablecoins?|semiconductors?|chipmakers?|data cent\w+|cloud computing|nvidia|software)\b/gi],
+  ["Tech & Finance",/\b(ai|artificial intelligence|fintech|crypto\w*|bitcoin|ethereum|stablecoins?|semiconductors?|chipmakers?|data cent\w+|cloud computing|nvidia|software|startups?|venture capital|funding round|series [a-e]\b|seed round|unicorns?|openai|anthropic|llms?|foundation models?|gpus?)\b/gi],
   ["Personal Finance",/\b(retirement|401k|401\(k\)|roth|mortgages?|savings?|portfolios?|index funds?|etfs?|budgeting|credit cards?|insurance|financial advis\w+|estate planning)\b/gi],
   ["Economics",    /\b(inflation|cpi|pce|gdp|unemployment|payrolls?|jobs report|recession|productivit\w+|trade deficit|tariffs?|housing starts?|consumer spending|econom\w+|labou?r market)\b/gi],
   ["Opinion",      /\b(opinion|commentary|the case (for|against)|column|essay|why .{0,40}\?)\b/gi]
@@ -551,17 +590,84 @@ const DEMO = {
   title:"A quiet place to read the market, one story at a time",
   standfirst:"This built-in page shows you the reading experience: the typography, the Listen button and one-tap copy. Pull down on the front page to load live stories from public feeds.",
   html:`<p>The Ledger does one thing: it collects financial journalism that is free to read on the open web and puts it in front of you without clutter. There are no adverts, no trackers, no pop-ups asking for your email, and nothing here reaches past a publisher's paywall. Every story keeps its byline, its publication and a link home.</p>
-  <p>The front page is arranged the way a newspaper is arranged. One lead story sits at the top, secondary stories follow underneath, and a <em>Most read</em> rail collects what the sources are pushing hardest right now. Tap any headline to open it. Tap the bookmark to keep it.</p>
+  <p>The front page is arranged the way a newspaper is arranged. One lead story sits at the top, short news stories follow underneath, a <em>Why it matters</em> card explains the significance of the day's best analysis, and a <em>Long reads</em> rail keeps the deeper work in view. Tap any headline to open it. Tap the bookmark to keep it.</p>
   <blockquote>Reading well is mostly a matter of removing things: the interruptions, the autoplay video, the third request to accept cookies.</blockquote>
   <h2>Listening</h2>
   <p>The headphone button reads the article aloud. If you have added your own OpenAI API key in Settings, it uses OpenAI's speech models, which sound close to a human presenter; long pieces are split into chunks, queued seamlessly, and cached on your device so the same article is never paid for twice. Without a key it falls back to the voice built into your phone, so the button always works.</p>
   <h2>Copying</h2>
   <p>The copy button puts the whole piece on your clipboard as clean plain text — headline, publication, author, date, the original link, then the body — ready to paste into notes, a document, or a message to whoever needs to read it next.</p>
   <h2>Where the stories come from</h2>
-  <p>Wire services and mainstream business desks that publish open feeds; central banks and official researchers including the Federal Reserve, the ECB, the Bank of England, the BIS, the IMF and the World Bank; Creative Commons outlets; and a shortlist of independent analysts who publish in full to open feeds. You can see the full list, and how each one is behaving, in Settings.</p>`
+  <p>Wire services and mainstream business desks that publish open feeds; central banks and official researchers; Creative Commons outlets; and a shortlist of independent analysts. Stories are presented as The Ledger's own summary and context with a link to the original — full articles appear only where the publisher's licence allows it, and each one says so. You can see the full source list, and how each feed is behaving, in Settings.</p>`
 };
 DEMO.text = htmlToText(DEMO.html);
 DEMO.ts = Date.parse(DEMO.date) || Date.now();
+
+/* ------------------------- 3b. the Ledger's editorial voice -------------------
+   Two things here are written by The Ledger itself, in this file, and are the
+   only prose the app publishes as its own.
+
+   WIM_NOTES is the "Why it matters" layer: short original context, by desk,
+   with a couple of variants each so the page doesn't chant. An item's note is
+   chosen by its id, so the same story always carries the same words.
+
+   WEEKLY is the deep-dive feature — replace the essay (and its date) each week. */
+const WIM_NOTES = {
+  "Markets":[
+    "Price moves are the surface; the story underneath is usually positioning. Ask who was set up for the opposite outcome, because forced unwinding — not fresh conviction — is what turns a drift into a rout, and a bounce into a squeeze.",
+    "One session rarely matters on its own. What matters is whether this move confirms or breaks the trend that portfolios are actually positioned for — that's the difference between noise and a repricing."
+  ],
+  "Companies":[
+    "Company news is macro news in miniature: hiring, guidance and capital spending decisions like this one are how boardroom expectations become next quarter's economic data. Watch whether competitors follow — one firm is an anecdote, three are a trend.",
+    "The headline number matters less than what management chose to do with it — buy back stock, pay down debt, or invest. That choice is the cleanest signal of how much confidence insiders really have in their own outlook."
+  ],
+  "Economics":[
+    "Single data points mislead; revisions and trend matter more. The useful question is whether this changes the path central banks and markets already have priced in — data that confirms expectations moves nothing, data that breaks them moves everything.",
+    "Economic releases are backward-looking by construction. The value here is in what it implies about income, spending and hiring in the months ahead — the pipeline, not the print."
+  ],
+  "Central Banks":[
+    "Central-bank decisions reprice everything downstream of them: mortgages, corporate borrowing, currencies, and ultimately equity valuations. Statements like this move markets less by what changed than by what the wording signals about the path ahead, read against what was already priced in.",
+    "Policy works with long and variable lags, so today's stance is a bet on conditions a year out. The tell is rarely the decision itself — it's the dissents, the forecast changes, and the sentences that weren't there last time."
+  ],
+  "Opinion":[
+    "Strong arguments are worth reading precisely because the consensus is usually priced in and the dissent is not. Weigh the incentives of the person making it, then look for the one fact in it you can verify independently.",
+    "Commentary earns its place when it changes what you would watch next, not what you believe. Take the framework, test it against the data as it arrives, and discard it without sentiment if it fails."
+  ],
+  "Tech & Finance":[
+    "The AI build-out is now a macro force: capital spending on chips and data centres shows up in GDP, in index concentration, and increasingly in credit markets. Stories like this one are worth reading as infrastructure economics, not just product news.",
+    "In technology markets the interesting question is who captures the margin — the model builders, the chip and cloud owners, or the businesses applying it. Follow where the pricing power sits, because that is where the durable earnings will."
+  ],
+  "Personal Finance":[
+    "Most personal-finance edges are behavioural, not analytical: costs, tax, diversification and staying invested decide outcomes over decades. Read stories like this for the habit they encourage, and be suspicious of anything that only works if you act quickly.",
+    "The test for any money decision is whether it survives being boring: repeatable, low-cost, and indifferent to this month's headlines. If a strategy needs excitement to sell, the excitement is usually the product."
+  ]
+};
+function ledgerNote(it){
+  const notes = WIM_NOTES[it.section] || WIM_NOTES["Markets"];
+  let h=0; const s=String(it.id||""); for(let i=0;i<s.length;i++) h=(h*33+s.charCodeAt(i))|0;
+  return notes[Math.abs(h)%notes.length];
+}
+
+const WEEKLY = {
+  id:"weekly-2026-08-17", ledger:true, source:"The Ledger", section:"Tech & Finance",
+  author:"The Ledger", date:"2026-08-17T06:00:00Z", link:"", kind:"deep",
+  fullText:true, republish:true, lic:"", weight:1.5,
+  title:"The capex ledger: what the AI build-out is doing to the market's balance sheet",
+  standfirst:"The deep dive for the week of 17 August. Artificial intelligence stopped being a software story the moment it started absorbing hundreds of billions of dollars of physical capital a year. That changes who bears the risk — and how you should read every AI headline between now and the next earnings season.",
+  html:`<p>For its first act, the AI boom ran on the prettiest business model in history: software margins on top of someone else's infrastructure. The second act looks very different. The large platform companies are now committing capital to chips, data centres and power on a scale that belongs in the same sentence as railways and telecoms — hundreds of billions of dollars a year between them, with guidance that keeps drifting higher. When spending of that size shows up anywhere, the correct instinct is not excitement or dread. It is accounting.</p>
+  <h2>From income statement to balance sheet</h2>
+  <p>A software business sells the same code twice at almost no extra cost, which is why the market pays so richly for it. A data centre is the opposite: enormous cost up front, revenue later, maybe. As the hyperscalers pour cash into physical capacity, a growing share of their value rests not on the economics they have, but on the economics they expect. Depreciation is where that bet becomes visible. Concrete and turbines depreciate over decades; the accelerators inside are being superseded in a few years. Small changes in assumed useful life move reported earnings by billions, in businesses the market still prices as if capital hardly mattered.</p>
+  <blockquote>Every technology bubble in history has been a dispute about depreciation schedules that called itself a dispute about the future.</blockquote>
+  <p>That is only mildly unfair. The fibre glut of 2000 was a bet that traffic would arrive before the equipment aged; traffic arrived, but a decade late and at prices that ruined the people who laid the glass. The lesson was never that the optimists were wrong about demand. It was that being right about demand and wrong about timing is, financially, the same thing as being wrong.</p>
+  <h2>Who holds the risk now</h2>
+  <p>The quieter shift is in the funding. The first phase of the build-out was paid for from operating cash flow — shareholders bore the risk, knowingly, in companies that could afford the experiment. Increasingly the spending is financed: bond issues, leases, joint ventures and special-purpose vehicles that put the assets a step away from the sponsor's balance sheet. Risk that used to sit with equity holders who chose it is migrating toward credit markets that price it as if it were infrastructure. Sometimes it is. The difference between a toll road and a warehouse of accelerators is that nobody re-invents the toll road every thirty months.</p>
+  <p>Meanwhile the equity market's exposure is no longer optional. A handful of AI-heavy firms now make up a share of the major indices with few precedents, which means the trade lives in pension funds and index portfolios that never chose it. Concentration is not a prediction that anything ends badly; it is a statement about what happens to everyone if it does.</p>
+  <h2>What would tell you the story is turning</h2>
+  <p>Watch utilisation and pricing rather than announcements: committed capacity is a press release, while the rental price of compute is a market clearing in real time — if it falls while build-out accelerates, supply is winning. Watch the gap between capex guidance and free cash flow, and note the moment any big spender starts describing depreciation assumptions as conservative. Watch power, the one input that cannot be conjured by a financing structure. And watch the credit terms on data-centre deals: when lenders start requiring the kind of covenants they attach to speculative construction, they will have concluded something before the equity market says it aloud.</p>
+  <p>None of this says the technology disappoints. The railways were transformative and ruinous at the same time, for different people, in that order. The question for anyone reading AI headlines through a financial lens is never only whether the future arrives. It is who is paying for the track, at what cost of capital, and what they have promised themselves about how long it lasts.</p>`
+};
+WEEKLY.text = htmlToText(WEEKLY.html);
+WEEKLY.ts = Date.parse(WEEKLY.date) || Date.now();
+WEEKLY.words = WEEKLY.text.trim().split(/\s+/).length;
 
 /* ------------------------- 4. feed loading ------------------------- */
 function parseFeed(xmlText, src){
@@ -587,7 +693,8 @@ function parseFeed(xmlText, src){
     const title   = pick("title") || "Untitled";
     const author  = pick("dc\\:creator","creator","author>name","author") || src.n;
     const date    = pick("pubDate","published","updated","dc\\:date") || new Date().toISOString();
-    return makeItem({title, link, rawHtml, author, date, source:src.n, hintSection:src.s, weight:src.q||1});
+    return makeItem({title, link, rawHtml, author, date, source:src.n, hintSection:src.s,
+                     weight:src.q||1, kind:src.k||"news", lic:src.lic||""});
   });
 }
 
@@ -595,6 +702,7 @@ function makeItem(o){
   const clean = sanitize(o.rawHtml||"");
   const text  = htmlToText(clean);
   const title = decodeEntities(o.title).replace(/\s+/g," ").trim();
+  const words = text ? text.trim().split(/\s+/).length : 0;
   return {
     id: hash(o.link || title),
     title, link:safeUrl(o.link), weight:o.weight||1,
@@ -602,9 +710,14 @@ function makeItem(o){
     date:o.date, ts:Date.parse(o.date)||Date.now(),
     html:clean, text,
     standfirst: firstSentences(text, 190),
-    words: text ? text.trim().split(/\s+/).length : 0,
+    words,
     section: classify(title+" "+text, o.hintSection),
-    fullText: (text.split(/\s+/).length > 220)
+    kind: o.kind||"news", lic: o.lic||"",
+    fullText: words > 220,
+    /* the whole article is shown only when the publisher's licence permits it;
+       fullText alone means the feed happened to carry the text, which is not
+       the same thing as a right to reprint it */
+    republish: words > 220 && !!o.lic
   };
 }
 
@@ -684,6 +797,37 @@ function firstSentences(text,max){
   return (stop>90 ? cut.slice(0,stop+1) : cut.replace(/\s\S*$/,"")+"…");
 }
 
+/* One short, clearly attributed passage from the source's own reporting —
+   enough to carry its flavour, never a substitute for reading it. Skips past
+   the standfirst so the quote adds something rather than repeating the lede. */
+function shortQuote(it){
+  if(!it.text || (it.words||0) < 60) return "";
+  let t = it.text.replace(/\s+/g," ").trim();
+  const sf = (it.standfirst||"").replace(/[….\s]+$/,"");
+  if(sf.length > 40 && t.slice(0, sf.length + 20).includes(sf.slice(0, 40))) t = t.slice(sf.length);
+  t = t.replace(/^[….\s]+/,"");
+  const q = firstSentences(t, 300);
+  if(q.length < 60) return "";
+  // a quote that just re-reads the lede adds nothing — drop it
+  const lede = firstSentences(it.text, 190);
+  if(lede && q.slice(0,80) === lede.slice(0,80)) return "";
+  return q;
+}
+
+/* What The Ledger actually presents for an item — and therefore all that
+   Listen and Copy may carry. Its own writing and licensed articles in full;
+   for everything else the summary, the short quote, and the Ledger's context,
+   never the withheld body. */
+function presentedText(it){
+  if(it.demo || it.ledger || it.republish) return it.text || "";
+  const bits = [it.standfirst || firstSentences(it.text||"", 190)];
+  const q = shortQuote(it);
+  if(q) bits.push("From "+it.source+"'s report: "+q);
+  bits.push("Why it matters. "+ledgerNote(it));
+  bits.push("The full article is at "+it.source+".");
+  return bits.filter(Boolean).join(" ");
+}
+
 /* A light quality score, so the lead slot goes to something worth reading
    rather than whatever landed most recently. Depth and provenance count;
    wire filler is nudged down. */
@@ -747,7 +891,7 @@ function commit(items, opts){
   });
   clean.sort((a,b)=> b.ts - a.ts);
   if(clean.length){
-    S.items = clean.concat([DEMO]);
+    S.items = clean.concat([WEEKLY, DEMO]);
     S.stale=false;
     S.banner = (opts && opts.partial) ? "Still gathering the longer reads…" : "";
     writeCache(clean);
@@ -773,7 +917,7 @@ async function loadFeeds(opts){
   // built-in page — while the network works.
   if(!S.items.length){
     const cached = store.get(LS.cache,null);
-    S.items = (cached && cached.items && cached.items.length) ? cached.items.concat([DEMO]) : [DEMO];
+    S.items = (cached && cached.items && cached.items.length) ? cached.items.concat([WEEKLY, DEMO]) : [WEEKLY, DEMO];
     S.stale = !!(cached && cached.items && cached.items.length);
   }
   S.banner = silent ? S.banner : (S.stale ? "Refreshing from public feeds…" : "Fetching live stories from public feeds…");
@@ -792,6 +936,51 @@ async function loadFeeds(opts){
 }
 function normTitle(t){ return String(t||"").toLowerCase().replace(/[^a-z0-9 ]/g,"").replace(/\s+/g," ").trim().slice(0,70); }
 
+/* The front page follows the editorial mix: news leads, at roughly two thirds
+   of the page; the why-it-matters layer takes about a quarter; deep, expert
+   work about a tenth, anchored by the weekly feature. The composer fills a
+   fixed pattern of slots from the three ranked pools, backfilling from news
+   when a pool runs short — the page stays news-led whatever the feeds did
+   today. The why-it-matters card and the weekly get their own furniture in
+   render(); S.mix records the composition so the tests can hold it to the
+   strategy. */
+function composeFront(real){
+  const rank = a => a.slice().sort((x,y)=>scoreOf(y)-scoreOf(x));
+  const news     = rank(real.filter(i=>(i.kind||"news")==="news"));
+  const analysis = rank(real.filter(i=>i.kind==="analysis"));
+  const deep     = rank(real.filter(i=>i.kind==="deep"));
+
+  // the bold lead: the strongest news story of the last three days
+  const recentNews = news.filter(i=>Date.now()-i.ts < 72*3.6e6);
+  const lead = recentNews[0] || news[0] || analysis[0] || deep[0];
+
+  // the why-it-matters card carries the strongest analysis piece of the day
+  S.wim = analysis.find(i=>i!==lead) || deep.find(i=>i!==lead) || null;
+
+  const used = new Set([lead && lead.id, S.wim && S.wim.id].filter(Boolean));
+  const q = { n:news.filter(i=>!used.has(i.id)),
+              a:analysis.filter(i=>!used.has(i.id)),
+              d:deep.filter(i=>!used.has(i.id)) };
+
+  // 24 slots after the lead — 16 news, 5 analysis, 3 deep — interleaved so
+  // analysis and depth punctuate the news rather than pooling at the bottom
+  const pattern = "nnnannandnnannnadnnannnd";
+  const out = lead ? [lead] : [];
+  for(const want of pattern){
+    const order = want==="n" ? "nad" : want==="a" ? "and" : "dan";
+    for(const k of order){ if(q[k].length){ out.push(q[k].shift()); break; } }
+  }
+
+  const page = out.concat(S.wim ? [S.wim] : [], [WEEKLY]);   // what the reader actually sees
+  S.mix = {
+    news:     page.filter(i=>(i.kind||"news")==="news").length,
+    analysis: page.filter(i=>i.kind==="analysis").length,
+    deep:     page.filter(i=>i.kind==="deep").length,
+    total:    page.length
+  };
+  return out;
+}
+
 /* ------------------------- 5. rendering ------------------------- */
 function visible(){
   let list = S.items.slice();
@@ -804,14 +993,14 @@ function visible(){
     list = Array.from(byId.values()).sort((a,b)=>(S.saved[b.id]||0)-(S.saved[a.id]||0));
   }
   else if(S.section==="Front page"){
-    const real = list.filter(i=>!i.demo);
+    const real = list.filter(i=>!i.demo && !i.ledger);
     if(real.length){
-      // lead slot: best-scoring story of the last three days; the rest by recency
-      const recent = real.filter(i=>Date.now()-i.ts < 72*3.6e6);
-      const pool = recent.length ? recent : real;
-      const best = pool.slice().sort((a,b)=>scoreOf(b)-scoreOf(a))[0];
-      list = [best].concat(real.filter(i=>i!==best), [DEMO]);
-    }else list = [DEMO];
+      list = composeFront(real).concat([DEMO]);
+    }else{
+      // nothing fetched yet: the weekly deep dive leads, the about page follows
+      S.wim = null; S.mix = null;
+      list = [WEEKLY, DEMO];
+    }
   }
   else list = list.filter(i=>i.section===S.section);
   if(S.query){
@@ -843,6 +1032,24 @@ function cardHTML(it, lead){
   </article>`;
 }
 
+function wimCardHTML(it){
+  return `<article class="card wim" data-id="${it.id}">
+    <p class="wimlabel">Why it matters</p>
+    <h2 class="hl">${esc(it.title)}</h2>
+    <p class="wimnote">${esc(ledgerNote(it))}</p>
+    <div class="meta"><span class="badge">${esc(it.source)}</span><span class="dot">${when(it.ts)}</span><span class="dot">Context by The Ledger</span></div>
+  </article>`;
+}
+function weeklyCardHTML(){
+  const it = WEEKLY;
+  return `<article class="card weekly" data-id="${it.id}">
+    <p class="weeklylabel">The Ledger Weekly · Deep dive</p>
+    <h2 class="hl">${esc(it.title)}</h2>
+    <p class="standfirst">${esc(it.standfirst)}</p>
+    <div class="meta"><span class="badge">The Ledger</span><span class="dot">${readMins(it.words)} min read</span><span class="dot">Original analysis</span></div>
+  </article>`;
+}
+
 function bannerHTML(){
   if(S.banner==="unreachable"){
     return `<div class="notice">
@@ -870,9 +1077,23 @@ function render(){
   }
 
   const lead = list[0], rest = list.slice(1, 26);
-  feed.innerHTML = bannerHTML() + cardHTML(lead,true) + rest.map(i=>cardHTML(i,false)).join("");
 
-  const most = S.items.filter(i=>!i.demo && i.fullText).slice()
+  // the editorial furniture appears on the composed front page, not in search
+  // results or section tabs: the why-it-matters card after the opening news
+  // block, the weekly deep dive a little further down
+  const extras = S.section==="Front page" && !S.query && list.some(i=>!i.demo && !i.ledger);
+  let wimDone = !(extras && S.wim), weeklyDone = !extras;
+  let html = bannerHTML() + cardHTML(lead,true);
+  rest.forEach((i,idx)=>{
+    html += cardHTML(i,false);
+    if(!wimDone && idx>=2){ html += wimCardHTML(S.wim); wimDone = true; }
+    if(!weeklyDone && idx>=6){ html += weeklyCardHTML(); weeklyDone = true; }
+  });
+  if(!wimDone) html += wimCardHTML(S.wim);
+  if(!weeklyDone) html += weeklyCardHTML();
+  feed.innerHTML = html;
+
+  const most = S.items.filter(i=>!i.demo && !i.ledger && i.fullText && i.kind!=="news").slice()
                  .sort((a,b)=>scoreOf(b)-scoreOf(a)).slice(0,5);
   rail.innerHTML = most.length ?
     `<p class="railhead">Long reads</p><ol class="rail">` +
@@ -924,33 +1145,55 @@ function openReader(it){
   S.current = it;
   S.read[it.id]=1; store.set(LS.read,S.read);
 
-  const body = it.html && it.fullText
-    ? it.html
-    : `<p>${esc(it.text || it.standfirst || "")}</p>`;
-
   // checked again here rather than trusted: this item may have been read back from a
   // cache written by an older build, before links were vetted on the way in
   const link = safeUrl(it.link);
 
-  const tail = it.demo ? "" :
-    `<hr class="rule">
-     <p class="srcbox">${it.fullText?"Published by":"Summary from"} <strong>${esc(it.source)}</strong>.
-     ${it.fullText?"Shown here from the publisher's own public feed.":"The full article stays on the publisher's site."}
-     ${link?`<br><a href="${esc(link)}" target="_blank" rel="noopener noreferrer">Read at source →</a>`:""}</p>`;
+  /* Three presentations, decided by rights rather than by what the feed carried.
+     "ledger"   — The Ledger's own writing, shown in full.
+     "licensed" — the publisher's licence permits full republication; shown in
+                  full, the licence named in the attribution line.
+     "summary"  — everything else: The Ledger's summary, one short attributed
+                  quote where the feed justifies it, the Ledger's why-it-matters
+                  context, and a prominent route to the original. The article
+                  itself stays with the publisher. */
+  const own  = it.demo || it.ledger;
+  const mode = own ? "ledger" : (it.republish && it.html ? "licensed" : "summary");
+
+  let body, wimBox = "", attr = "";
+  if(mode==="ledger"){
+    body = it.html;
+    attr = it.demo ? "" : `<p class="attrline">Original analysis by <strong>The Ledger</strong>.</p>`;
+  }else if(mode==="licensed"){
+    body = it.html;
+    wimBox = `<aside class="wimbox"><h3>Why it matters</h3><p>${esc(ledgerNote(it))}</p><p class="wimsig">— The Ledger</p></aside>`;
+    attr = `<hr class="rule">
+      <p class="attrline">Republished in full from <strong>${esc(it.source)}</strong> — ${esc(it.lic)} — with attribution.
+      ${link?`<a href="${esc(link)}" target="_blank" rel="noopener noreferrer">Read at source →</a>`:""}</p>`;
+  }else{
+    const lede  = it.standfirst || firstSentences(it.text, 190);
+    const quote = shortQuote(it);
+    body = (lede ? `<p>${esc(lede)}</p>` : "") +
+           (quote ? `<figure class="quotebox"><blockquote>${esc(quote)}</blockquote><figcaption>— from ${esc(it.source)}'s report</figcaption></figure>` : "");
+    wimBox = `<aside class="wimbox"><h3>Why it matters</h3><p>${esc(ledgerNote(it))}</p><p class="wimsig">— The Ledger</p></aside>`;
+    attr = `<p class="attrline">Reported by <strong>${esc(it.source)}</strong>${sameName(it.author,it.source)?"":" ("+esc(it.author)+")"}. Summary and context by The Ledger; the article itself stays with the publisher.</p>
+      ${link?`<p class="srccta"><a class="btn solid" href="${esc(link)}" target="_blank" rel="noopener noreferrer">Read the full story at ${esc(it.source)} →</a></p>`:""}`;
+  }
 
   $("#rwrap").innerHTML =
     `<p class="kicker">${esc(it.section)}</p>
      <h1>${esc(it.title)}</h1>
-     ${it.standfirst && it.fullText ? `<p class="rstand">${esc(it.standfirst)}</p>`:""}
+     ${it.standfirst && mode!=="summary" ? `<p class="rstand">${esc(it.standfirst)}</p>`:""}
      <div class="rmeta">
        <span class="badge">${esc(it.source)}</span>
        ${sameName(it.author,it.source)?"":`<span class="byline">${esc(it.author)}</span>`}
        <span class="dot">${new Date(it.ts).toLocaleString(undefined,{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"})}</span>
-       ${it.words?`<span class="dot">${readMins(it.words)} min read</span>`:""}
+       ${it.words && mode!=="summary"?`<span class="dot">${readMins(it.words)} min read</span>`:""}
      </div>
-     ${it.demo?"":`<p class="srcbox" style="margin:-4px 0 20px">Gathered from ${esc(it.source)}'s public feed. ${link?`<a href="${esc(link)}" target="_blank" rel="noopener noreferrer">Read at source →</a>`:""}</p>`}
+     ${own?"":`<p class="srcbox" style="margin:-4px 0 20px">${mode==="licensed"?"Republished with permission":"The Ledger's summary"}${link?` · <a href="${esc(link)}" target="_blank" rel="noopener noreferrer">original at ${esc(it.source)} →</a>`:""}</p>`}
      <div class="rbody">${body}</div>
-     ${tail}`;
+     ${wimBox}
+     ${attr}`;
 
   const rs=$("#rSave");
   rs.setAttribute("aria-pressed", !!S.saved[it.id]);
@@ -974,13 +1217,22 @@ function updateProgress(){
   $("#progress").style.width = (h>0 ? Math.min(100,(r.scrollTop/h)*100) : 0) + "%";
 }
 
-/* article → clean plain text */
+/* article → clean plain text, carrying exactly what The Ledger presents */
 function plainText(it){
+  const link = safeUrl(it.link);
   const lines=[it.title,"",it.source + (it.author&&it.author!==it.source?" — "+it.author:""),
     new Date(it.ts).toLocaleString(undefined,{dateStyle:"long",timeStyle:"short"})];
-  if(it.link) lines.push(it.link);
-  lines.push("", it.text || it.standfirst || "");
-  if(!it.fullText && it.link) lines.push("", "[Summary from "+it.source+". Full article: "+it.link+"]");
+  if(link) lines.push(link);
+  if(it.demo || it.ledger || it.republish){
+    lines.push("", it.text || it.standfirst || "");
+    if(it.republish && it.lic) lines.push("", "[Republished in full from "+it.source+" — "+it.lic+" — with attribution.]");
+  }else{
+    lines.push("", it.standfirst || firstSentences(it.text||"",190) || "");
+    const q = shortQuote(it);
+    if(q) lines.push("", "“"+q+"” — "+it.source);
+    lines.push("", "Why it matters: "+ledgerNote(it), "— The Ledger");
+    lines.push("", "[Summary and context by The Ledger. Full article at "+it.source+(link?": "+link:".")+"]");
+  }
   return lines.join("\n");
 }
 async function copyArticle(){
@@ -994,7 +1246,7 @@ async function copyArticle(){
       document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0,txt.length);
       document.execCommand("copy"); ta.remove();
     }
-    toast("Copied — "+S.current.text.split(/\s+/).length+" words");
+    toast("Copied — "+txt.trim().split(/\s+/).length+" words");
   }catch(e){ toast("Couldn't copy — long-press to select instead", 2600); }
 }
 async function shareArticle(){
@@ -1017,7 +1269,7 @@ const player = $("#player");
 
 function speechText(it){
   const head = it.title + ". " + (it.author && it.author!==it.source ? "By "+it.author+", " : "") + it.source + ". ";
-  const body = (it.text && it.text.length>120) ? it.text : (it.standfirst||"");
+  const body = presentedText(it) || it.standfirst || "";
   return (head + body).replace(/\s+/g," ").trim();
 }
 function chunkText(t, limit){

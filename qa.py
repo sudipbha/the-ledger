@@ -223,6 +223,81 @@ async def main():
         }""")
         ok("feed cache stays inside the storage quota", 0 < cache["readsBack"] <= 40, str(cache))
 
+        # ---- editorial strategy: the mix, the furniture, and the rights model ----
+        mix = await page.evaluate("""() => {
+          const mk = (i, kind, lic, words, src) => makeItem({
+            title: kind+" story "+i+" about markets and the economy",
+            link: "https://example.com/"+kind+"/"+i,
+            rawHtml: "<p>"+Array.from({length: Math.ceil(words/11)}, (_,j)=>
+              "Paragraph sentence "+j+" reports on rates, earnings and consumer spending in some detail.").join(" ")+"</p>",
+            author: "Ann Writer "+i, date: new Date(Date.now()-i*36e5).toISOString(),
+            source: src, hintSection: "Markets", weight: 1, kind, lic});
+          const items = [];
+          for(let i=0;i<20;i++) items.push(mk(i,"news","",80,"Newswire"));
+          for(let i=0;i<9;i++)  items.push(mk(100+i,"analysis","",600,"Analyst Blog"));
+          for(let i=0;i<5;i++)  items.push(mk(200+i,"deep", i===0?"CC BY-ND 4.0":"",900,"Research House"));
+          commit(items);
+          S.section="Front page"; S.query=""; render();
+          return S.mix;
+        }""")
+        n, a, d, t = mix["news"], mix["analysis"], mix["deep"], mix["total"]
+        ok("front page is news-led (60-70% news)", 0.55 <= n/t <= 0.75, f"{n}/{t} = {round(100*n/t)}%")
+        ok("why-it-matters layer at 20-30%", 0.15 <= a/t <= 0.35, f"{a}/{t} = {round(100*a/t)}%")
+        ok("deep expert work at 10-15%", 0.05 <= d/t <= 0.20, f"{d}/{t} = {round(100*d/t)}%")
+
+        ok("why-it-matters card on the front page", await page.locator("article.card.wim").count() == 1)
+        ok("weekly deep-dive feature on the front page", await page.locator("article.card.weekly").count() == 1)
+
+        await page.locator("article.card.wim").click()
+        await page.wait_for_timeout(500)
+        wim_open = await page.evaluate("document.querySelector('#reader').classList.contains('on')")
+        ok("why-it-matters card opens its story", wim_open)
+        await page.evaluate("closeReader()")
+
+        weekly = await page.evaluate("""() => {
+          openReader(itemById('weekly-2026-08-17'));
+          return {paras: document.querySelectorAll('#rwrap .rbody p').length,
+                  attr: (document.querySelector('#rwrap .attrline')||{}).textContent||""};
+        }""")
+        ok("weekly feature is a full Ledger essay", weekly["paras"] >= 5 and "The Ledger" in weekly["attr"],
+           f"{weekly['paras']} paragraphs")
+
+        # an open feed is not a licence: unlicensed full text is never reprinted
+        summary = await page.evaluate("""() => {
+          closeReader();
+          const it = S.items.find(i=>i.kind==='analysis' && i.fullText && !i.republish);
+          openReader(it);
+          const rb = document.querySelector('#rwrap .rbody').innerText;
+          return {full: it.text.length, rendered: rb.length,
+                  quote: !!document.querySelector('#rwrap .quotebox'),
+                  wimbox: !!document.querySelector('#rwrap .wimbox'),
+                  cta: !!document.querySelector('#rwrap .srccta a'),
+                  attr: ((document.querySelector('#rwrap .attrline')||{}).textContent||"").includes('Summary and context by The Ledger'),
+                  copied: plainText(it), spoken: speechText(it)};
+        }""")
+        ok("unlicensed article shown as summary, not reprint",
+           summary["rendered"] < summary["full"] * 0.4, f"{summary['rendered']} of {summary['full']} chars shown")
+        ok("summary carries quote, context, attribution and route out",
+           summary["quote"] and summary["wimbox"] and summary["cta"] and summary["attr"])
+        ok("copy carries the summary, not the withheld body",
+           len(summary["copied"]) < summary["full"] * 0.5 and "Why it matters" in summary["copied"]
+           and "https://example.com/" in summary["copied"], f"{len(summary['copied'])} chars")
+        ok("listen reads the summary, not the withheld body",
+           len(summary["spoken"]) < summary["full"] * 0.5, f"{len(summary['spoken'])} chars")
+
+        licensed = await page.evaluate("""() => {
+          closeReader();
+          const it = S.items.find(i=>i.republish);
+          openReader(it);
+          return {full: it.text.length,
+                  rendered: document.querySelector('#rwrap .rbody').innerText.length,
+                  attr: ((document.querySelector('#rwrap .attrline')||{}).textContent||"")};
+        }""")
+        ok("licensed article republished in full, licence named",
+           licensed["rendered"] >= licensed["full"] * 0.9 and "CC BY-ND 4.0" in licensed["attr"],
+           f"{licensed['rendered']}/{licensed['full']} chars")
+        await page.evaluate("closeReader()")
+
         # front page screenshot after a successful-ish state
         await page.evaluate("document.querySelector('#settings').classList.remove('on')")
         await page.wait_for_timeout(400)

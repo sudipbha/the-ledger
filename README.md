@@ -2,9 +2,15 @@
 
 A quiet reader for high-quality, free-to-read financial journalism, built to look and feel like a broadsheet business paper on an iPhone 17 Pro Max. No adverts, no trackers, no paywall circumvention. Every article keeps its byline, its publication and a link home.
 
+## The editorial model
+
+The Ledger is news-led. The front page is composed to a deliberate mix: roughly **60–70% timely news** across finance, startups and AI, built to be read and shared quickly; **20–30% "Why it matters"** — The Ledger's own short analysis of what a story means financially; and **10–15% deep, expert-quality work**, anchored by one weekly Ledger-written feature on the overlap of finance and AI. The composer in `index.html` enforces this mix whatever the feeds delivered today, and the test suite holds it to those bands.
+
+Every story carries The Ledger's own summary and context, a clear link to the original, and an attribution line saying exactly what the reader is looking at. The publication rule is strict and simple: **a public feed is an invitation to read, not a licence to republish.** Articles appear in full only where the publisher's licence permits it — Creative Commons work, US government material, and publishers whose terms allow reproduction with acknowledgement — and the licence is named beside the piece. Everything else is presented as original Ledger writing: a summary, at most one short attributed quote where the reporting justifies it, the Ledger's "Why it matters" note, and a prominent route to the source. Listen and Copy carry only what The Ledger presents, never a withheld body.
+
 ## What it does
 
-The front page is arranged like a newspaper: one lead story, secondary stories underneath, and a *Long reads* rail beside it on wider screens. Section tabs across the top cover Markets, Companies, Economics, Central Banks, Opinion, Tech & Finance and Personal Finance, plus your saved articles. Search, bookmarking, mark-as-read, pull-to-refresh and a reading-progress bar are all there, and there is a full dark reading mode.
+The front page is arranged like a newspaper: one bold lead story, short news stories underneath, a claret-edged **Why it matters** card carrying the day's best analysis with The Ledger's context, **The Ledger Weekly** deep dive, and a *Long reads* rail beside it on wider screens. Section tabs across the top cover Markets, Companies, Economics, Central Banks, Opinion, Tech & Finance and Personal Finance, plus your saved articles. Search, bookmarking, mark-as-read, pull-to-refresh and a reading-progress bar are all there, and there is a full dark reading mode.
 
 Every article has two buttons that matter. **Listen** reads the piece aloud — with your own OpenAI API key it uses OpenAI's speech models and sounds close to a human presenter, and without a key it falls back to the voice built into your phone, so the button always works. **Copy** puts the whole article on your clipboard as clean plain text: headline, publication, author, date, original link, then the body.
 
@@ -33,10 +39,12 @@ Lock-screen and background playback use the Media Session API, so the title, ski
 Open `index.html` and find the `SOURCES` array near the top of the script. Each entry looks like this:
 
 ```js
-{n:"Calculated Risk", u:"https://calculatedrisk.substack.com/feed", s:"Economics", h:true, q:1.25}
+{n:"Calculated Risk", u:"https://calculatedrisk.substack.com/feed", s:"Economics", h:true, q:1.25, k:"analysis"}
 ```
 
-`n` is the display name, `u` is the RSS or Atom URL, `s` is the fallback section when the text gives no clearer signal, `h:true` marks a heavy full-text feed (fetched in a second wave so the front page paints fast), and `q` is a quality weight used when choosing the lead story — analysts and central banks sit above 1.0, wire filler below. Delete a line to remove a source; add a line to add one. Nothing else needs to change.
+`n` is the display name, `u` is the RSS or Atom URL, `s` is the fallback section when the text gives no clearer signal, `h:true` marks a heavy full-text feed (fetched in a second wave so the front page paints fast), and `q` is a quality weight used when choosing the lead story — analysts and central banks sit above 1.0, wire filler below. `k` is the editorial kind — `"news"`, `"analysis"` or `"deep"` — which decides where the source's stories sit in the front-page mix. `lic` names a reuse licence and exists only where one genuinely does (The Conversation's CC BY-ND, Federal Reserve Board material, the ECB's reproduction-with-acknowledgement terms); a source without `lic` is never republished in full, no matter what its feed carries. Delete a line to remove a source; add a line to add one. Nothing else needs to change.
+
+The Ledger's own writing lives beside the sources: `WIM_NOTES` holds the "Why it matters" context notes, by desk, and `WEEKLY` holds the deep-dive feature — replace the essay and its date each week.
 
 Every feed shipped here was checked by hand: public, free, no login and no paywall. The Financial Times, WSJ, Bloomberg and The Economist are deliberately absent. Settings shows a live list of which feeds answered on the last refresh and how many items each returned.
 
@@ -44,7 +52,7 @@ Every feed shipped here was checked by hand: public, free, no login and no paywa
 
 Browsers cannot read cross-origin RSS directly, so feeds are fetched through public CORS relays with a fallback chain (`api.allorigins.win`, then `corsproxy.io`, then `api.codetabs.com`). If all of them fail, the app shows whatever is already cached on your device rather than an empty screen.
 
-Where a publisher's own feed carries the full text — most of the independent analysts do — the whole article is rendered, sanitised of scripts, iframes and inline handlers, with attribution and a link to the original. Links and images are kept only if the browser resolves them to `http`, `https` or `mailto`, which is stricter than it sounds: a leading space or tab makes `javascript:` look harmless to a naive check but not to the URL parser. A content security policy sits behind that, so no script can be loaded from another host and the page can only talk to the speech API and the feed relays — the API key in local storage has nowhere to be sent even if something did slip through. Where the feed carries only a summary, the summary is shown with a prominent *Read at source* link. The app never scrapes past a paywall and never fetches anything a feed did not publish.
+What renders is decided by rights, not by what the feed happened to carry. A source with a named reuse licence renders in full — sanitised of scripts, iframes and inline handlers, with the licence stated in the attribution line and a link to the original. Every other story, including the many whose feeds carry complete articles, is presented as The Ledger's page: the summary as the lede, at most one short quote attributed to the publisher, the Ledger's "Why it matters" analysis in its own box, an attribution line, and a solid *Read the full story* button out to the source. Links and images are kept only if the browser resolves them to `http`, `https` or `mailto`, which is stricter than it sounds: a leading space or tab makes `javascript:` look harmless to a naive check but not to the URL parser. A content security policy sits behind that, so no script can be loaded from another host and the page can only talk to the speech API and the feed relays — the API key in local storage has nowhere to be sent even if something did slip through. The app never scrapes past a paywall and never fetches anything a feed did not publish.
 
 A note on the *Long reads* rail: it is ranked by depth and source quality, not by readership, because a static client has no way to know what other people are reading. It is labelled honestly rather than called "most read".
 
@@ -61,12 +69,14 @@ Both suites drive headless Chromium at a 440 × 956 viewport with touch and mobi
 ```
 pip install playwright && playwright install chromium
 
-python3 qa.py            # 34 checks: layout, touch targets, copy, listen fallback,
+python3 qa.py            # 46 checks: layout, touch targets, copy, listen fallback,
                          # dark mode, settings persistence, manifest, service worker,
-                         # URL sanitising, bookmark durability, cache limits
+                         # URL sanitising, bookmark durability, cache limits, the
+                         # editorial mix, and the licence model
 ./fetch_fixtures.sh      # capture eight real feeds (not committed — see .gitignore)
-python3 qa_live.py       # 20 checks: sectioning, dedupe, bylines, sanitisation,
-                         # copy fidelity, TTS chunking against real publisher output
+python3 qa_live.py       # 22 checks: sectioning, dedupe, bylines, sanitisation, the
+                         # mix and licence model, copy fidelity, TTS chunking
+                         # against real publisher output
 ```
 
 The live suite intercepts the relay request and answers with the captured feeds, so it exercises the real fetch-and-parse path without depending on the network being up. Publisher feed content is deliberately not committed to this repository.
