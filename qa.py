@@ -344,6 +344,16 @@ async def main():
            f"{licensed['rendered']}/{licensed['full']} chars")
         await page.evaluate("closeReader()")
 
+        # launch plumbing: feedback link present; analytics silent until a code is set
+        fb = await page.evaluate("""() => !!document.querySelector('#settings a[href*="github.com/sudipbha/the-ledger/issues"]')""")
+        ok("feedback link in settings", fb)
+        silent = await page.evaluate("""() => {
+          ping('/qa-test');
+          return GC_SITE === "" &&
+            performance.getEntriesByType('resource').filter(r=>r.name.includes('goatcounter')).length === 0;
+        }""")
+        ok("analytics sends nothing until a site code is set", silent)
+
         # front page screenshot after a successful-ish state
         await page.evaluate("document.querySelector('#settings').classList.remove('on')")
         await page.wait_for_timeout(400)

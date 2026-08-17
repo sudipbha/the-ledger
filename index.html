@@ -430,6 +430,12 @@ ol.rail .hl{font-size:1rem;line-height:1.25}
       <p class="hint">Only publicly available RSS/Atom feeds are used. Nothing behind a paywall or login is fetched, and full articles always link back to the publisher.</p>
     </div>
 
+    <div class="field">
+      <label>Feedback</label>
+      <p class="hint">The Ledger is new and shaped by its readers. Tell us what to fix or cover:
+      <a href="https://github.com/sudipbha/the-ledger/issues" target="_blank" rel="noopener noreferrer"><strong>send feedback →</strong></a></p>
+    </div>
+
     <div class="rowbtns">
       <button class="btn solid" id="saveSettings">Save</button>
       <button class="btn ghost" id="clearAudio">Clear audio cache</button>
@@ -516,6 +522,20 @@ const TAGS = [
 ];
 
 /* CORS relays, tried in order. RSS is public, but browsers block cross-origin XML. */
+/* Privacy-respecting analytics, off by default. Create a free GoatCounter
+   account (goatcounter.com), then put your site code here — e.g. "theledger"
+   for theledger.goatcounter.com. Counting uses a plain image request: no
+   script is loaded, no cookies are set, nothing runs on the visitor's device,
+   and with the code empty not a single request leaves the page. */
+const GC_SITE = "";
+function ping(path){
+  if(!GC_SITE) return;
+  try{
+    new Image().src = "https://"+GC_SITE+".goatcounter.com/count?p="+
+      encodeURIComponent(path)+"&rnd="+Date.now();
+  }catch(e){}
+}
+
 const RELAYS = [
   u => "https://api.allorigins.win/raw?url=" + encodeURIComponent(u),
   u => "https://corsproxy.io/?url=" + encodeURIComponent(u),
@@ -1148,6 +1168,7 @@ function sameName(a,b){
 function openReader(it){
   S.current = it;
   S.read[it.id]=1; store.set(LS.read,S.read);
+  ping("/article/"+it.id);
 
   // checked again here rather than trusted: this item may have been read back from a
   // cache written by an older build, before links were vetted on the way in
@@ -1601,6 +1622,7 @@ function boot(){
     }).catch(()=>{});
   }
 
+  ping("/");
   loadFeeds();
   setInterval(()=>loadFeeds({silent:true}), 30*60*1000);
   document.addEventListener("visibilitychange",()=>{
