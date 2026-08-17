@@ -3,8 +3,9 @@
    doesn't cost you your reading. Feeds and audio are cached separately
    (localStorage / IndexedDB) by the app. */
 
-const SHELL = "ledger-shell-v1";
-const RUNTIME = "ledger-runtime-v1";
+const VERSION = "2";
+const SHELL = "ledger-shell-v" + VERSION;
+const RUNTIME = "ledger-runtime-v" + VERSION;
 const FILES = [
   "./",
   "./index.html",
@@ -13,6 +14,11 @@ const FILES = [
   "./icon-512.png",
   "./icon-180.png"
 ];
+
+/* How long a launch waits for a fresh copy of the app before falling back to the
+   cached one. Long enough for a slow train connection, short enough not to feel
+   like a hang. */
+const NAV_TIMEOUT = 3500;
 
 self.addEventListener("install", e => {
   e.waitUntil(
@@ -30,6 +36,26 @@ self.addEventListener("activate", e => {
   );
 });
 
+/* The whole app is index.html, so a cache-first shell means a deploy never reaches
+   anyone who has already installed it. Navigations go to the network first and only
+   fall back to the cached copy when the network is slow or gone — an update lands on
+   the next launch, offline still works, and no cache name has to be bumped by hand. */
+async function navigate(req) {
+  const cache = await caches.open(SHELL);
+  try {
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), NAV_TIMEOUT);
+    let res;
+    try { res = await fetch(req, {signal:ctl.signal, cache:"no-cache"}); }
+    finally { clearTimeout(timer); }
+    if (!res || !res.ok) throw new Error("HTTP " + (res && res.status));
+    cache.put("./index.html", res.clone());
+    return res;
+  } catch (e) {
+    return (await cache.match("./index.html")) || (await cache.match("./")) || Response.error();
+  }
+}
+
 self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
@@ -39,11 +65,8 @@ self.addEventListener("fetch", e => {
   // never touch the speech API or the CORS relays — always live
   if (/api\.openai\.com|allorigins|corsproxy|codetabs/.test(url.hostname)) return;
 
-  // navigations: serve the app shell, fall back to network
   if (req.mode === "navigate") {
-    e.respondWith(
-      caches.match("./index.html").then(hit => hit || fetch(req).catch(() => caches.match("./")))
-    );
+    e.respondWith(navigate(req));
     return;
   }
 

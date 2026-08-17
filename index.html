@@ -2,6 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<!-- Article bodies come from publisher feeds by way of third-party relays, and the
+     reader's OpenAI key lives in this origin's local storage. The policy below is the
+     backstop: no script may be loaded from anywhere else, and the only hosts this page
+     can talk to are the speech API and the feed relays. -->
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  base-uri 'none';
+  object-src 'none';
+  frame-src 'none';
+  form-action 'none';
+  script-src 'self' 'unsafe-inline';
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src https://fonts.gstatic.com;
+  img-src 'self' https: data: blob:;
+  media-src 'self' blob:;
+  connect-src 'self' https://api.openai.com https://api.allorigins.win https://corsproxy.io https://api.codetabs.com">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
 <title>The Ledger — Finance, read properly</title>
 <meta name="description" content="A quiet reader for high-quality, free-to-read financial journalism.">
@@ -465,19 +481,57 @@ const RELAYS = [
 /* ------------------------- 2. state ------------------------- */
 const LS = {
   key:"ledger.apikey", model:"ledger.model", voice:"ledger.voice", theme:"ledger.theme",
-  size:"ledger.size", saved:"ledger.saved", read:"ledger.read", cache:"ledger.cache"
+  size:"ledger.size", saved:"ledger.saved", savedItems:"ledger.savedItems",
+  read:"ledger.read", cache:"ledger.cache"
 };
 const store = {
   get(k,d){ try{ const v=localStorage.getItem(k); return v===null?d:JSON.parse(v); }catch(e){ return d; } },
-  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} },
+  /* returns false when the browser's storage is full, so callers can make room
+     rather than lose the write silently */
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); return true; }catch(e){ return false; } },
   del(k){ try{ localStorage.removeItem(k); }catch(e){} }
 };
 
 const S = {
   items:[], section:"Front page", query:"",
-  saved:store.get(LS.saved,{}), read:store.get(LS.read,{}),
+  saved:store.get(LS.saved,{}), savedItems:store.get(LS.savedItems,{}), read:store.get(LS.read,{}),
   feedStatus:[], current:null, loading:false, banner:"", stale:false
 };
+
+/* A bookmarked article has to outlive the feed cache it arrived in, so the whole
+   piece is kept, not just its id. */
+function itemById(id){
+  return S.items.find(i=>i.id===id) || S.savedItems[id] || null;
+}
+function persistSaved(){
+  if(store.set(LS.savedItems, S.savedItems)) return true;
+  // out of room: the oldest bookmarks give up their formatted body — the plain text
+  // still reads, copies and listens — before any bookmark is dropped altogether
+  const oldestFirst = Object.keys(S.savedItems).sort((a,b)=>(S.saved[a]||0)-(S.saved[b]||0));
+  for(const id of oldestFirst){
+    if(S.savedItems[id].html){
+      S.savedItems[id].html = "";
+      if(store.set(LS.savedItems, S.savedItems)) return true;
+    }
+  }
+  toast("Storage is full — remove a bookmark or two", 3200);
+  return false;
+}
+function toggleSave(id, item){
+  if(S.saved[id]){
+    delete S.saved[id]; delete S.savedItems[id];
+  }else{
+    // the caller's copy matters when re-saving an article that is open in the reader
+    // but no longer on any feed — dropping it removed the only copy left
+    const it = item || itemById(id);
+    if(!it) return false;
+    S.saved[id] = Date.now();
+    S.savedItems[id] = Object.assign({}, it);
+  }
+  store.set(LS.saved, S.saved);
+  persistSaved();
+  return !!S.saved[id];
+}
 
 const $  = (s,r)=> (r||document).querySelector(s);
 const $$ = (s,r)=> Array.from((r||document).querySelectorAll(s));
@@ -543,7 +597,7 @@ function makeItem(o){
   const title = decodeEntities(o.title).replace(/\s+/g," ").trim();
   return {
     id: hash(o.link || title),
-    title, link:o.link||"", weight:o.weight||1,
+    title, link:safeUrl(o.link), weight:o.weight||1,
     source:o.source, author:cleanAuthor(o.author),
     date:o.date, ts:Date.parse(o.date)||Date.now(),
     html:clean, text,
@@ -577,6 +631,19 @@ function cleanAuthor(a){
   a = a.split(/,| and | \| /)[0].trim();      // drop job titles and co-author tails
   return a.slice(0,46) || "Staff";
 }
+/* Any URL that arrives from a feed is checked here before the browser sees it.
+   A prefix test on the raw string is not enough: the URL parser strips tabs,
+   newlines and leading control characters, so " javascript:…" and "java\tscript:…"
+   are javascript: URLs however innocent they look. Parse it, then judge the
+   scheme the browser actually resolved. */
+function safeUrl(u, extraSchemes){
+  const raw = String(u==null?"":u).replace(/[\u0000-\u001f\u007f]/g,"").replace(/^\s+|\s+$/g,"");
+  if(!raw) return "";
+  let url;
+  try{ url = new URL(raw, location.href); }catch(e){ return ""; }
+  const allowed = ["http:","https:","mailto:"].concat(extraSchemes||[]);
+  return allowed.indexOf(url.protocol.toLowerCase())>=0 ? url.href : "";
+}
 function sanitize(html){
   const doc = new DOMParser().parseFromString("<div>"+decodeEntities(html)+"</div>","text/html");
   doc.querySelectorAll("script,style,iframe,form,input,button,noscript,svg,video,audio,object,embed").forEach(n=>n.remove());
@@ -584,10 +651,20 @@ function sanitize(html){
     Array.from(el.attributes).forEach(at=>{
       const n = at.name.toLowerCase();
       const keep = (n==="href"&&el.tagName==="A") || (n==="src"&&el.tagName==="IMG") || n==="alt" || n==="title";
-      if(!keep || /^javascript:/i.test(at.value)) el.removeAttribute(at.name);
+      if(!keep) el.removeAttribute(at.name);
     });
-    if(el.tagName==="A"){ el.setAttribute("target","_blank"); el.setAttribute("rel","noopener noreferrer"); }
-    if(el.tagName==="IMG"){ el.setAttribute("loading","lazy"); el.setAttribute("decoding","async"); }
+    if(el.tagName==="A"){
+      const href = safeUrl(el.getAttribute("href"));
+      if(href) el.setAttribute("href", href); else el.removeAttribute("href");
+      el.setAttribute("target","_blank"); el.setAttribute("rel","noopener noreferrer");
+    }
+    if(el.tagName==="IMG"){
+      // data: is safe in an img — the browser will not run script from one
+      const src = safeUrl(el.getAttribute("src"), ["data:"]);
+      if(!src){ el.remove(); return; }
+      el.setAttribute("src", src);
+      el.setAttribute("loading","lazy"); el.setAttribute("decoding","async");
+    }
   });
   return doc.body.firstChild ? doc.body.firstChild.innerHTML : "";
 }
@@ -648,6 +725,19 @@ async function harvest(list){
   return out;
 }
 
+/* Full-text articles are heavy — a hundred of them will not fit in the roughly five
+   megabytes a browser gives an origin, and a cache write that quietly fails leaves
+   no offline reading at all. Keep a smaller set, and give up items rather than the
+   whole cache when the browser says no. */
+const CACHE_MAX = 40;
+function writeCache(items){
+  for(let n=Math.min(CACHE_MAX, items.length); n>=5; n=Math.floor(n/2)){
+    if(store.set(LS.cache,{at:Date.now(), items:items.slice(0,n)})) return n;
+  }
+  store.del(LS.cache);
+  return 0;
+}
+
 function commit(items, opts){
   const seen=new Set(); const clean=[];
   items.forEach(it=>{
@@ -660,7 +750,14 @@ function commit(items, opts){
     S.items = clean.concat([DEMO]);
     S.stale=false;
     S.banner = (opts && opts.partial) ? "Still gathering the longer reads…" : "";
-    try{ store.set(LS.cache,{at:Date.now(), items:clean.slice(0,120)}); }catch(e){}
+    writeCache(clean);
+    // a bookmark made before this build, or one whose article has just come back on
+    // the feed, gets its own copy kept now
+    let backfilled = false;
+    clean.forEach(it=>{
+      if(S.saved[it.id] && !S.savedItems[it.id]){ S.savedItems[it.id] = Object.assign({}, it); backfilled = true; }
+    });
+    if(backfilled) persistSaved();
   }else if(!(opts && opts.partial)){
     S.banner = "unreachable";
   }
@@ -698,7 +795,14 @@ function normTitle(t){ return String(t||"").toLowerCase().replace(/[^a-z0-9 ]/g,
 /* ------------------------- 5. rendering ------------------------- */
 function visible(){
   let list = S.items.slice();
-  if(S.section==="Saved"){ list = list.filter(i=>S.saved[i.id]); }
+  if(S.section==="Saved"){
+    // live copies where the article is still in the feed, the kept copy otherwise,
+    // most recently bookmarked first
+    const byId = new Map();
+    list.forEach(i=>{ if(S.saved[i.id]) byId.set(i.id, i); });
+    Object.keys(S.saved).forEach(id=>{ if(!byId.has(id) && S.savedItems[id]) byId.set(id, S.savedItems[id]); });
+    list = Array.from(byId.values()).sort((a,b)=>(S.saved[b.id]||0)-(S.saved[a.id]||0));
+  }
   else if(S.section==="Front page"){
     const real = list.filter(i=>!i.demo);
     if(real.length){
@@ -787,17 +891,14 @@ function bindCards(){
   $$("article.card, ol.rail li").forEach(el=>{
     el.onclick = ev=>{
       if(ev.target.closest("[data-save]")) return;
-      const it = S.items.find(i=>i.id===el.dataset.id);
+      const it = itemById(el.dataset.id);
       if(it) openReader(it);
     };
   });
   $$("[data-save]").forEach(b=>{
     b.onclick = ev=>{
       ev.stopPropagation();
-      const id=b.dataset.save;
-      if(S.saved[id]) delete S.saved[id]; else S.saved[id]=Date.now();
-      store.set(LS.saved,S.saved);
-      toast(S.saved[id]?"Saved":"Removed");
+      toast(toggleSave(b.dataset.save) ? "Saved" : "Removed");
       render();
     };
   });
@@ -827,11 +928,15 @@ function openReader(it){
     ? it.html
     : `<p>${esc(it.text || it.standfirst || "")}</p>`;
 
+  // checked again here rather than trusted: this item may have been read back from a
+  // cache written by an older build, before links were vetted on the way in
+  const link = safeUrl(it.link);
+
   const tail = it.demo ? "" :
     `<hr class="rule">
      <p class="srcbox">${it.fullText?"Published by":"Summary from"} <strong>${esc(it.source)}</strong>.
      ${it.fullText?"Shown here from the publisher's own public feed.":"The full article stays on the publisher's site."}
-     ${it.link?`<br><a href="${esc(it.link)}" target="_blank" rel="noopener noreferrer">Read at source →</a>`:""}</p>`;
+     ${link?`<br><a href="${esc(link)}" target="_blank" rel="noopener noreferrer">Read at source →</a>`:""}</p>`;
 
   $("#rwrap").innerHTML =
     `<p class="kicker">${esc(it.section)}</p>
@@ -843,7 +948,7 @@ function openReader(it){
        <span class="dot">${new Date(it.ts).toLocaleString(undefined,{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"})}</span>
        ${it.words?`<span class="dot">${readMins(it.words)} min read</span>`:""}
      </div>
-     ${it.demo?"":`<p class="srcbox" style="margin:-4px 0 20px">Gathered from ${esc(it.source)}'s public feed. ${it.link?`<a href="${esc(it.link)}" target="_blank" rel="noopener noreferrer">Read at source →</a>`:""}</p>`}
+     ${it.demo?"":`<p class="srcbox" style="margin:-4px 0 20px">Gathered from ${esc(it.source)}'s public feed. ${link?`<a href="${esc(link)}" target="_blank" rel="noopener noreferrer">Read at source →</a>`:""}</p>`}
      <div class="rbody">${body}</div>
      ${tail}`;
 
@@ -894,7 +999,7 @@ async function copyArticle(){
 }
 async function shareArticle(){
   if(!S.current) return;
-  const d={title:S.current.title, text:S.current.standfirst||S.current.title, url:S.current.link||location.href};
+  const d={title:S.current.title, text:S.current.standfirst||S.current.title, url:safeUrl(S.current.link)||location.href};
   try{
     if(navigator.share){ await navigator.share(d); }
     else if(navigator.clipboard){ await navigator.clipboard.writeText((d.url||"")+" — "+d.title); toast("Link copied"); }
@@ -1183,11 +1288,10 @@ function boot(){
   $("#rListen").onclick = listen;
   $("#rSave").onclick = ()=>{
     const it=S.current; if(!it) return;
-    if(S.saved[it.id]) delete S.saved[it.id]; else S.saved[it.id]=Date.now();
-    store.set(LS.saved,S.saved);
-    $("#rSave").setAttribute("aria-pressed", !!S.saved[it.id]);
-    $("svg",$("#rSave")).setAttribute("fill", S.saved[it.id]?"currentColor":"none");
-    toast(S.saved[it.id]?"Saved":"Removed"); render();
+    const on = toggleSave(it.id, it);
+    $("#rSave").setAttribute("aria-pressed", on);
+    $("svg",$("#rSave")).setAttribute("fill", on?"currentColor":"none");
+    toast(on?"Saved":"Removed"); render();
   };
   $("#reader").addEventListener("scroll", updateProgress, {passive:true});
   window.addEventListener("popstate", ()=>{ if($("#reader").classList.contains("on")) closeReader(); });
@@ -1229,8 +1333,13 @@ function boot(){
   });
 
   // service worker (optional file; ignored when absent, e.g. file://)
+  // updateViaCache:"none" keeps the browser's HTTP cache out of the worker's own
+  // update check, so a deploy is noticed on the next launch rather than a day later
   if("serviceWorker" in navigator && location.protocol.startsWith("http")){
-    navigator.serviceWorker.register("sw.js").catch(()=>{});
+    navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(reg=>{
+      setInterval(()=>{ reg.update().catch(()=>{}); }, 60*60*1000);
+      document.addEventListener("visibilitychange",()=>{ if(!document.hidden) reg.update().catch(()=>{}); });
+    }).catch(()=>{});
   }
 
   loadFeeds();

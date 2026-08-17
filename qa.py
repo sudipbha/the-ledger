@@ -158,6 +158,70 @@ async def main():
         ok("manifest is standalone", man.get("display") == "standalone")
         sw_ok = await page.evaluate("navigator.serviceWorker.getRegistrations().then(r=>r.length>0)")
         ok("service worker registered", sw_ok)
+        nav_first = await page.evaluate("""async () => {
+          const r = await fetch('sw.js', {cache:'no-store'});
+          const s = await r.text();
+          return /req\\.mode === "navigate"/.test(s) && /async function navigate/.test(s) && !/caches\\.match\\("\\.\\/index\\.html"\\).then\\(hit => hit \\|\\|/.test(s);
+        }""")
+        ok("shell is network-first, so a deploy reaches installed users", nav_first)
+
+        # feed content is third-party: no URL scheme may reach the browser but the safe ones
+        bad = await page.evaluate("""() => {
+          const kept = [];
+          for (const raw of ['javascript:x=1',' javascript:x=1','java\\tscript:x=1','\\njavascript:x=1',
+                             'JaVaScRiPt:x=1','vbscript:x=1']) {
+            const d=document.createElement('div');
+            d.innerHTML = sanitize('<a href="'+raw+'">x</a>');
+            const a=d.querySelector('a');
+            if (a && a.hasAttribute('href')) kept.push(raw);
+          }
+          return kept;
+        }""")
+        ok("script URLs stripped from article links", not bad, "; ".join(bad))
+        ok("feed link scheme vetted on the way in", await page.evaluate("""() => {
+          const it = makeItem({title:'T', link:' javascript:x=1', rawHtml:'<p>b</p>', author:'A',
+                               date:new Date().toISOString(), source:'S', hintSection:'Markets'});
+          return it.link === '';
+        }"""))
+        ok("ordinary links and images survive sanitising", await page.evaluate("""() => {
+          const out = sanitize('<p><a href="https://example.com/a?b=1">l</a><img src="https://example.com/c.png" alt="c"></p>');
+          return out.includes('href="https://example.com/a?b=1"') && out.includes('src="https://example.com/c.png"');
+        }"""))
+        ok("content security policy declared", await page.evaluate(
+           """() => { const m=document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+                      return !!m && /connect-src[^;]*api\\.openai\\.com/.test(m.content); }"""))
+
+        # a bookmark has to outlive the feed cache the article arrived in
+        kept = await page.evaluate("""() => {
+          localStorage.removeItem('ledger.saved'); localStorage.removeItem('ledger.savedItems');
+          S.saved={}; S.savedItems={};
+          const it = makeItem({title:'Kept story', link:'https://example.com/k',
+                               rawHtml:'<p>'+'word '.repeat(400)+'</p>', author:'A',
+                               date:new Date().toISOString(), source:'S', hintSection:'Markets'});
+          S.items=[it]; toggleSave(it.id);
+          S.items=[];                                                  // article falls off the feed
+          S.savedItems = JSON.parse(localStorage.getItem('ledger.savedItems'));   // as if reloaded
+          S.saved      = JSON.parse(localStorage.getItem('ledger.saved'));
+          S.section='Saved';
+          const shown = visible();
+          const back  = itemById(it.id);
+          S.section='Front page';
+          return {n: shown.length, body: !!(back && back.html)};
+        }""")
+        ok("bookmark survives the article leaving the feed", kept["n"] == 1 and kept["body"], str(kept))
+
+        # 120 full-text articles do not fit in a browser's storage; the cache must not lose the lot
+        cache = await page.evaluate("""() => {
+          const big = '<p>'+'word '.repeat(4000)+'</p>';
+          const items = [];
+          for (let i=0;i<200;i++) items.push(makeItem({title:'S'+i, link:'https://e.com/'+i, rawHtml:big,
+                                   author:'A', date:new Date().toISOString(), source:'S', hintSection:'Markets'}));
+          localStorage.removeItem('ledger.cache');
+          const n = writeCache(items);
+          const raw = localStorage.getItem('ledger.cache');
+          return {n, readsBack: raw ? JSON.parse(raw).items.length : 0};
+        }""")
+        ok("feed cache stays inside the storage quota", 0 < cache["readsBack"] <= 40, str(cache))
 
         # front page screenshot after a successful-ish state
         await page.evaluate("document.querySelector('#settings').classList.remove('on')")

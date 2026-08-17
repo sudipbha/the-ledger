@@ -18,6 +18,8 @@ For **GitHub Pages**, commit these files to a repository, then in Settings → P
 
 Once installed to the home screen the app runs full-screen with the salmon status bar, and the service worker keeps the shell and your last-read articles available when you lose signal.
 
+Redeploying is just replacing the files: the service worker asks the network for `index.html` first and only falls back to its cached copy when the network is slow or absent, so a change reaches everyone who has installed the app on their next launch. Nothing has to be version-stamped by hand.
+
 ## Adding your OpenAI key
 
 Open Settings (the gear in the masthead), paste a key that starts with `sk-`, choose a model and a voice, and save. The key is written to this browser's `localStorage` and is sent to exactly one place: `https://api.openai.com/v1/audio/speech`. It is never transmitted anywhere else, there is no server in this app to send it to, and you can clear it by emptying the field and saving again.
@@ -42,7 +44,7 @@ Every feed shipped here was checked by hand: public, free, no login and no paywa
 
 Browsers cannot read cross-origin RSS directly, so feeds are fetched through public CORS relays with a fallback chain (`api.allorigins.win`, then `corsproxy.io`, then `api.codetabs.com`). If all of them fail, the app shows whatever is already cached on your device rather than an empty screen.
 
-Where a publisher's own feed carries the full text — most of the independent analysts do — the whole article is rendered, sanitised of scripts, iframes and inline handlers, with attribution and a link to the original. Where the feed carries only a summary, the summary is shown with a prominent *Read at source* link. The app never scrapes past a paywall and never fetches anything a feed did not publish.
+Where a publisher's own feed carries the full text — most of the independent analysts do — the whole article is rendered, sanitised of scripts, iframes and inline handlers, with attribution and a link to the original. Links and images are kept only if the browser resolves them to `http`, `https` or `mailto`, which is stricter than it sounds: a leading space or tab makes `javascript:` look harmless to a naive check but not to the URL parser. A content security policy sits behind that, so no script can be loaded from another host and the page can only talk to the speech API and the feed relays — the API key in local storage has nowhere to be sent even if something did slip through. Where the feed carries only a summary, the summary is shown with a prominent *Read at source* link. The app never scrapes past a paywall and never fetches anything a feed did not publish.
 
 A note on the *Long reads* rail: it is ranked by depth and source quality, not by readership, because a static client has no way to know what other people are reading. It is labelled honestly rather than called "most read".
 
@@ -59,8 +61,9 @@ Both suites drive headless Chromium at a 440 × 956 viewport with touch and mobi
 ```
 pip install playwright && playwright install chromium
 
-python3 qa.py            # 27 checks: layout, touch targets, copy, listen fallback,
-                         # dark mode, settings persistence, manifest, service worker
+python3 qa.py            # 34 checks: layout, touch targets, copy, listen fallback,
+                         # dark mode, settings persistence, manifest, service worker,
+                         # URL sanitising, bookmark durability, cache limits
 ./fetch_fixtures.sh      # capture eight real feeds (not committed — see .gitignore)
 python3 qa_live.py       # 20 checks: sectioning, dedupe, bylines, sanitisation,
                          # copy fidelity, TTS chunking against real publisher output
@@ -69,5 +72,7 @@ python3 qa_live.py       # 20 checks: sectioning, dedupe, bylines, sanitisation,
 The live suite intercepts the relay request and answers with the captured feeds, so it exercises the real fetch-and-parse path without depending on the network being up. Publisher feed content is deliberately not committed to this repository.
 
 ## Known limits
+
+A browser gives a site something like five megabytes of local storage, which is a few dozen full-text articles and no more, so the offline cache keeps the most recent forty. Bookmarks are exempt: saving an article keeps your own copy of it, so it stays readable — and listenable, and copyable — long after it has dropped off the feed. If storage does fill up, the oldest bookmarks give up their formatting before any bookmark is dropped.
 
 Clipboard writes and the service worker need HTTPS or `localhost`. Background audio on iOS keeps playing while the screen is locked once playback has started, but Safari will not start playback without a tap. The device-voice fallback has no seek bar — the skip buttons move between chunks instead. Feed relays are free public services and occasionally rate-limit; the app degrades to cached content when that happens rather than failing.
