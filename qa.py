@@ -224,20 +224,13 @@ async def main():
         ok("feed cache stays inside the storage quota", 0 < cache["readsBack"] <= 40, str(cache))
 
         # ---- editorial strategy: the mix, the furniture, and the rights model ----
+        # editorial articles ship in content.js and load at boot, so the mix, the
+        # why-it-matters card and the weekly feature all need zero seeding. (S.items
+        # is restored to normal boot contents here because an earlier check in this
+        # suite -- the bookmark-durability test above -- deliberately empties it.)
         mix = await page.evaluate("""() => {
-          const mk = (i, kind, lic, words, src) => makeItem({
-            title: kind+" story "+i+" about markets and the economy",
-            link: "https://example.com/"+kind+"/"+i,
-            rawHtml: "<p>"+Array.from({length: Math.ceil(words/11)}, (_,j)=>
-              "Paragraph sentence "+j+" reports on rates, earnings and consumer spending in some detail.").join(" ")+"</p>",
-            author: "Ann Writer "+i, date: new Date(Date.now()-i*36e5).toISOString(),
-            source: src, hintSection: "Markets", weight: 1, kind, lic});
-          const items = [];
-          for(let i=0;i<20;i++) items.push(mk(i,"news","",80,"Newswire"));
-          for(let i=0;i<9;i++)  items.push(mk(100+i,"analysis","",600,"Analyst Blog"));
-          for(let i=0;i<5;i++)  items.push(mk(200+i,"deep", i===0?"CC BY-ND 4.0":"",900,"Research House"));
-          commit(items);
-          S.section="Front page"; S.query=""; render();
+          S.items = EDITORIAL.concat([DEMO]);
+          S.section='Front page'; S.query=''; render();
           return S.mix;
         }""")
         n, a, d, t = mix["news"], mix["analysis"], mix["deep"], mix["total"]
@@ -255,12 +248,65 @@ async def main():
         await page.evaluate("closeReader()")
 
         weekly = await page.evaluate("""() => {
-          openReader(itemById('weekly-2026-08-17'));
+          openReader(weeklyItem());
           return {paras: document.querySelectorAll('#rwrap .rbody p').length,
                   attr: (document.querySelector('#rwrap .attrline')||{}).textContent||""};
         }""")
         ok("weekly feature is a full Ledger essay", weekly["paras"] >= 5 and "The Ledger" in weekly["attr"],
            f"{weekly['paras']} paragraphs")
+        await page.evaluate("closeReader()")
+
+        # every Ledger article credits its research with live https sources
+        srcs_ok = await page.evaluate("""() => {
+          return EDITORIAL.length > 0 && EDITORIAL.every(a =>
+            Array.isArray(a.sources) && a.sources.length >= 1 &&
+            a.sources.every(s => /^https:\\/\\//.test(s.u)));
+        }""")
+        ok("every Ledger article cites >=1 https source", srcs_ok)
+
+        srcbox = await page.evaluate("""() => {
+          openReader(EDITORIAL[0]);
+          return {links: document.querySelectorAll('#rwrap .sourcesbox a').length,
+                  attr: (document.querySelector('#rwrap .attrline')||{}).textContent||""};
+        }""")
+        ok("Ledger reader shows a sources box with attribution",
+           srcbox["links"] >= 1 and "Reported and written by The Ledger" in srcbox["attr"], str(srcbox))
+        await page.evaluate("closeReader()")
+
+        badges = await page.evaluate("""() => {
+          S.section='Front page'; S.query=''; render();
+          return Array.from(document.querySelectorAll('article.card .badge')).map(b=>b.textContent.trim());
+        }""")
+        ok("front page cards carry only The Ledger's own badge",
+           bool(badges) and all(b == "The Ledger" for b in badges), f"{len(badges)} cards")
+
+        # seed synthetic feed items for the rights-model checks below and for Newsstand
+        seeded = await page.evaluate("""() => {
+          const mk = (i, kind, lic, words, src) => makeItem({
+            title: kind+" story "+i+" about markets and the economy",
+            link: "https://example.com/"+kind+"/"+i,
+            rawHtml: "<p>"+Array.from({length: Math.ceil(words/11)}, (_,j)=>
+              "Paragraph sentence "+j+" reports on rates, earnings and consumer spending in some detail.").join(" ")+"</p>",
+            author: "Ann Writer "+i, date: new Date(Date.now()-i*36e5).toISOString(),
+            source: src, hintSection: "Markets", weight: 1, kind, lic});
+          const items = [];
+          for(let i=0;i<20;i++) items.push(mk(i,"news","",80,"Newswire"));
+          for(let i=0;i<9;i++)  items.push(mk(100+i,"analysis","",600,"Analyst Blog"));
+          for(let i=0;i<5;i++)  items.push(mk(200+i,"deep", i===0?"CC BY-ND 4.0":"",900,"Research House"));
+          return commit(items);
+        }""")
+
+        post = await page.evaluate("""() => {
+          S.section='Front page'; S.query=''; render();
+          const badges = Array.from(document.querySelectorAll('article.card .badge')).map(b=>b.textContent.trim());
+          S.section='Newsstand';
+          const ns = visible().length;
+          S.section='Front page'; render();
+          return {badges, ns};
+        }""")
+        ok("front page stays Ledger-only once feed items land",
+           bool(post["badges"]) and all(b == "The Ledger" for b in post["badges"]), f"{len(post['badges'])} cards")
+        ok("newsstand lists the seeded feed items", post["ns"] >= seeded, f"{post['ns']} >= {seeded}")
 
         # an open feed is not a licence: unlicensed full text is never reprinted
         summary = await page.evaluate("""() => {

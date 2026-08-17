@@ -6,11 +6,11 @@ A quiet reader for high-quality, free-to-read financial journalism, built to loo
 
 The Ledger is news-led. The front page is composed to a deliberate mix: roughly **60–70% timely news** across finance, startups and AI, built to be read and shared quickly; **20–30% "Why it matters"** — The Ledger's own short analysis of what a story means financially; and **10–15% deep, expert-quality work**, anchored by one weekly Ledger-written feature on the overlap of finance and AI. The composer in `index.html` enforces this mix whatever the feeds delivered today, and the test suite holds it to those bands.
 
-Every story carries The Ledger's own summary and context, a clear link to the original, and an attribution line saying exactly what the reader is looking at. The publication rule is strict and simple: **a public feed is an invitation to read, not a licence to republish.** Articles appear in full only where the publisher's licence permits it — Creative Commons work, US government material, and publishers whose terms allow reproduction with acknowledgement — and the licence is named beside the piece. Everything else is presented as original Ledger writing: a summary, at most one short attributed quote where the reporting justifies it, the Ledger's "Why it matters" note, and a prominent route to the source. Listen and Copy carry only what The Ledger presents, never a withheld body.
+The front page carries only The Ledger's own journalism. Every article there is a complete, self-contained piece written in The Ledger's own voice from credited research — not a summary of someone else's story. Every material source behind an article is credited and linked in a **Sources & further reading** box at the foot of the piece; those links support the reporting, they do not replace it. The wider public-feed layer lives one tab over, in a clearly labelled **Newsstand** — what the desk is reading, not what The Ledger has written — where a third-party story appears only as a brief summary with attribution and a link to the original, never dressed up as a Ledger article. The publication rule there is strict and simple: **a public feed is an invitation to read, not a licence to republish.** Full third-party text renders only under an explicit reuse licence — Creative Commons work, US government material, and publishers whose terms allow reproduction with acknowledgement — and that licence is named beside the piece; everything else in the Newsstand stays a summary, at most one short attributed quote, and a prominent route to the source. Listen and Copy carry only what's actually rendered, never a withheld body.
 
 ## What it does
 
-The front page is arranged like a newspaper: one bold lead story, short news stories underneath, a claret-edged **Why it matters** card carrying the day's best analysis with The Ledger's context, **The Ledger Weekly** deep dive, and a *Long reads* rail beside it on wider screens. Section tabs across the top cover Markets, Companies, Economics, Central Banks, Opinion, Tech & Finance and Personal Finance, plus your saved articles. Search, bookmarking, mark-as-read, pull-to-refresh and a reading-progress bar are all there, and there is a full dark reading mode.
+The front page is arranged like a newspaper, entirely from The Ledger's own articles: one bold lead story, short news stories underneath, a claret-edged **Why it matters** card carrying the day's best analysis with The Ledger's context, **The Ledger Weekly** deep dive, and a *Long reads* rail beside it on wider screens. Section tabs across the top cover Markets, Companies, Economics, Central Banks, Opinion, Tech & Finance and Personal Finance, plus a **Newsstand** tab for the public-feed stories and your saved articles. Search, bookmarking, mark-as-read, pull-to-refresh and a reading-progress bar are all there, and there is a full dark reading mode.
 
 Every article has two buttons that matter. **Listen** reads the piece aloud — with your own OpenAI API key it uses OpenAI's speech models and sounds close to a human presenter, and without a key it falls back to the voice built into your phone, so the button always works. **Copy** puts the whole article on your clipboard as clean plain text: headline, publication, author, date, original link, then the body.
 
@@ -44,7 +44,7 @@ Open `index.html` and find the `SOURCES` array near the top of the script. Each 
 
 `n` is the display name, `u` is the RSS or Atom URL, `s` is the fallback section when the text gives no clearer signal, `h:true` marks a heavy full-text feed (fetched in a second wave so the front page paints fast), and `q` is a quality weight used when choosing the lead story — analysts and central banks sit above 1.0, wire filler below. `k` is the editorial kind — `"news"`, `"analysis"` or `"deep"` — which decides where the source's stories sit in the front-page mix. `lic` names a reuse licence and exists only where one genuinely does (The Conversation's CC BY-ND, Federal Reserve Board material, the ECB's reproduction-with-acknowledgement terms); a source without `lic` is never republished in full, no matter what its feed carries. Delete a line to remove a source; add a line to add one. Nothing else needs to change.
 
-The Ledger's own writing lives beside the sources: `WIM_NOTES` holds the "Why it matters" context notes, by desk, and `WEEKLY` holds the deep-dive feature — replace the essay and its date each week.
+The Ledger's own articles live in `content.js`, not in `index.html`: each entry carries its `kind` (`"news"`, `"analysis"` or `"deep"`), section, headline, body and a `sources` array crediting every piece of research behind it — replace or add an entry and redeploy to publish. Mark the current deep-dive feature with `weekly:true`. `index.html` still holds `WIM_NOTES`, the short "Why it matters" context notes shown on the front-page card, by desk.
 
 Every feed shipped here was checked by hand: public, free, no login and no paywall. The Financial Times, WSJ, Bloomberg and The Economist are deliberately absent. Settings shows a live list of which feeds answered on the last refresh and how many items each returned.
 
@@ -69,14 +69,14 @@ Both suites drive headless Chromium at a 440 × 956 viewport with touch and mobi
 ```
 pip install playwright && playwright install chromium
 
-python3 qa.py            # 46 checks: layout, touch targets, copy, listen fallback,
+python3 qa.py            # 51 checks: layout, touch targets, copy, listen fallback,
                          # dark mode, settings persistence, manifest, service worker,
                          # URL sanitising, bookmark durability, cache limits, the
-                         # editorial mix, and the licence model
+                         # editorial mix, Ledger sourcing and the licence model
 ./fetch_fixtures.sh      # capture eight real feeds (not committed — see .gitignore)
-python3 qa_live.py       # 22 checks: sectioning, dedupe, bylines, sanitisation, the
-                         # mix and licence model, copy fidelity, TTS chunking
-                         # against real publisher output
+python3 qa_live.py       # 23 checks: sectioning, dedupe, bylines, sanitisation, the
+                         # mix and licence model, the Newsstand, copy fidelity,
+                         # TTS chunking against real publisher output
 ```
 
 The live suite intercepts the relay request and answers with the captured feeds, so it exercises the real fetch-and-parse path without depending on the network being up. Publisher feed content is deliberately not committed to this repository.

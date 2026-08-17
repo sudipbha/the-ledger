@@ -67,7 +67,7 @@ async def main():
         ok("no uncaught errors parsing real feeds", not errs, "; ".join(errs[:2]))
 
         data = await page.evaluate("""() => {
-          const real = S.items.filter(i=>!i.demo);
+          const real = S.items.filter(i=>!i.demo && !i.ledger);
           const bySec = {}; real.forEach(i=>bySec[i.section]=(bySec[i.section]||0)+1);
           return {
             count: real.length,
@@ -98,12 +98,16 @@ async def main():
         ok("no duplicate headlines", data["dupes"] == 0, data["dupes"])
         print("   sample:", *data["sampleTitles"], sep="\n     ")
 
-        # editorial mix over real feeds
+        # editorial mix -- front page is Ledger-authored (content.js), driven by S.mix
         mix = await page.evaluate("() => { S.section='Front page'; S.query=''; render(); return S.mix; }")
         ok("front-page mix follows the editorial strategy",
            bool(mix) and 0.55 <= mix["news"]/mix["total"] <= 0.75
                      and 0.15 <= mix["analysis"]/mix["total"] <= 0.35
                      and 0.05 <= mix["deep"]/mix["total"] <= 0.20, mix)
+
+        # the RSS layer lives in Newsstand now, never on the front page
+        ns = await page.evaluate("() => { S.section='Newsstand'; S.query=''; const n = visible().length; S.section='Front page'; render(); return n; }")
+        ok("newsstand lists the real feed items", ns >= 50, f"{ns} items")
 
         # a licensed article (The Conversation fixture, CC BY-ND) republishes in full
         target = await page.evaluate("""() => {

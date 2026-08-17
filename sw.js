@@ -9,6 +9,7 @@ const RUNTIME = "ledger-runtime-v" + VERSION;
 const FILES = [
   "./",
   "./index.html",
+  "./content.js",
   "./manifest.webmanifest",
   "./icon-192.png",
   "./icon-512.png",

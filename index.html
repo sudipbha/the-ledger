@@ -212,6 +212,10 @@ ol.rail .hl{font-size:1rem;line-height:1.25}
 .wimbox h3{font-family:var(--ui);font-size:.66rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--accent-2);margin:0 0 8px}
 .wimbox p{margin:0;font-size:.98rem;line-height:1.6}
 .wimbox .wimsig{font-family:var(--ui);font-size:.72rem;color:var(--ink-3);margin-top:8px}
+.sourcesbox{border:1px solid var(--rule-2);border-left:3px solid var(--teal);border-radius:0 12px 12px 0;background:var(--paper-2);padding:16px 18px;margin:26px 0}
+.sourcesbox h3{font-family:var(--ui);font-size:.66rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);margin:0 0 8px}
+.sourcesbox ul{margin:0;padding-left:1.1em;font-family:var(--ui);font-size:.82rem;line-height:1.7}
+.sourcesbox a{color:var(--accent)}
 .attrline{font-family:var(--ui);font-size:.8rem;color:var(--ink-3);line-height:1.55;margin:22px 0 0}
 .attrline a{color:var(--accent);font-weight:600}
 .srccta{margin:16px 0 0}
@@ -437,6 +441,7 @@ ol.rail .hl{font-size:1rem;line-height:1.25}
 <div id="toast" role="status" aria-live="polite"></div>
 <audio id="player" preload="auto" playsinline></audio>
 
+<script src="content.js"></script>
 <script>
 "use strict";
 /* =======================================================================
@@ -497,7 +502,7 @@ const SOURCES = [
   {n:"Of Dollars And Data",u:"https://ofdollarsanddata.com/feed/",                        s:"Personal Finance", h:true, q:1.2, k:"analysis"}
 ];
 
-const SECTIONS = ["Front page","Markets","Companies","Economics","Central Banks","Opinion","Tech & Finance","Personal Finance","Saved"];
+const SECTIONS = ["Front page","Markets","Companies","Economics","Central Banks","Opinion","Tech & Finance","Personal Finance","Newsstand","Saved"];
 
 /* keyword → section, so items land in a sensible place regardless of feed */
 const TAGS = [
@@ -610,7 +615,7 @@ DEMO.ts = Date.parse(DEMO.date) || Date.now();
    with a couple of variants each so the page doesn't chant. An item's note is
    chosen by its id, so the same story always carries the same words.
 
-   WEEKLY is the deep-dive feature — replace the essay (and its date) each week. */
+   The articles themselves live in content.js — replace that file to publish. */
 const WIM_NOTES = {
   "Markets":[
     "Price moves are the surface; the story underneath is usually positioning. Ask who was set up for the opposite outcome, because forced unwinding — not fresh conviction — is what turns a drift into a rout, and a bounce into a squeeze.",
@@ -647,27 +652,24 @@ function ledgerNote(it){
   return notes[Math.abs(h)%notes.length];
 }
 
-const WEEKLY = {
-  id:"weekly-2026-08-17", ledger:true, source:"The Ledger", section:"Tech & Finance",
-  author:"The Ledger", date:"2026-08-17T06:00:00Z", link:"", kind:"deep",
-  fullText:true, republish:true, lic:"", weight:1.5,
-  title:"The capex ledger: what the AI build-out is doing to the market's balance sheet",
-  standfirst:"The deep dive for the week of 17 August. Artificial intelligence stopped being a software story the moment it started absorbing hundreds of billions of dollars of physical capital a year. That changes who bears the risk — and how you should read every AI headline between now and the next earnings season.",
-  html:`<p>For its first act, the AI boom ran on the prettiest business model in history: software margins on top of someone else's infrastructure. The second act looks very different. The large platform companies are now committing capital to chips, data centres and power on a scale that belongs in the same sentence as railways and telecoms — hundreds of billions of dollars a year between them, with guidance that keeps drifting higher. When spending of that size shows up anywhere, the correct instinct is not excitement or dread. It is accounting.</p>
-  <h2>From income statement to balance sheet</h2>
-  <p>A software business sells the same code twice at almost no extra cost, which is why the market pays so richly for it. A data centre is the opposite: enormous cost up front, revenue later, maybe. As the hyperscalers pour cash into physical capacity, a growing share of their value rests not on the economics they have, but on the economics they expect. Depreciation is where that bet becomes visible. Concrete and turbines depreciate over decades; the accelerators inside are being superseded in a few years. Small changes in assumed useful life move reported earnings by billions, in businesses the market still prices as if capital hardly mattered.</p>
-  <blockquote>Every technology bubble in history has been a dispute about depreciation schedules that called itself a dispute about the future.</blockquote>
-  <p>That is only mildly unfair. The fibre glut of 2000 was a bet that traffic would arrive before the equipment aged; traffic arrived, but a decade late and at prices that ruined the people who laid the glass. The lesson was never that the optimists were wrong about demand. It was that being right about demand and wrong about timing is, financially, the same thing as being wrong.</p>
-  <h2>Who holds the risk now</h2>
-  <p>The quieter shift is in the funding. The first phase of the build-out was paid for from operating cash flow — shareholders bore the risk, knowingly, in companies that could afford the experiment. Increasingly the spending is financed: bond issues, leases, joint ventures and special-purpose vehicles that put the assets a step away from the sponsor's balance sheet. Risk that used to sit with equity holders who chose it is migrating toward credit markets that price it as if it were infrastructure. Sometimes it is. The difference between a toll road and a warehouse of accelerators is that nobody re-invents the toll road every thirty months.</p>
-  <p>Meanwhile the equity market's exposure is no longer optional. A handful of AI-heavy firms now make up a share of the major indices with few precedents, which means the trade lives in pension funds and index portfolios that never chose it. Concentration is not a prediction that anything ends badly; it is a statement about what happens to everyone if it does.</p>
-  <h2>What would tell you the story is turning</h2>
-  <p>Watch utilisation and pricing rather than announcements: committed capacity is a press release, while the rental price of compute is a market clearing in real time — if it falls while build-out accelerates, supply is winning. Watch the gap between capex guidance and free cash flow, and note the moment any big spender starts describing depreciation assumptions as conservative. Watch power, the one input that cannot be conjured by a financing structure. And watch the credit terms on data-centre deals: when lenders start requiring the kind of covenants they attach to speculative construction, they will have concluded something before the equity market says it aloud.</p>
-  <p>None of this says the technology disappoints. The railways were transformative and ruinous at the same time, for different people, in that order. The question for anyone reading AI headlines through a financial lens is never only whether the future arrives. It is who is paying for the track, at what cost of capital, and what they have promised themselves about how long it lasts.</p>`
-};
-WEEKLY.text = htmlToText(WEEKLY.html);
-WEEKLY.ts = Date.parse(WEEKLY.date) || Date.now();
-WEEKLY.words = WEEKLY.text.trim().split(/\s+/).length;
+/* The Ledger's articles, loaded from content.js — the publication itself.
+   Each is original Ledger writing with its material sources credited and
+   linked; makeEditorial turns an entry into a first-class item. */
+function makeEditorial(a){
+  const clean = sanitize(a.html||"");
+  const text  = htmlToText(clean);
+  return {
+    id:a.id, ledger:true, weekly:!!a.weekly, kind:a.kind||"news",
+    source:"The Ledger", author:"The Ledger", section:a.section||"Markets",
+    title:a.title, standfirst:a.standfirst||"", link:"",
+    date:a.date, ts:Date.parse(a.date)||Date.now(),
+    html:clean, text, words:text.trim().split(/\s+/).length,
+    sources:(a.sources||[]).map(x=>({t:x.t, u:safeUrl(x.u), p:x.p})).filter(x=>x.u),
+    fullText:true, republish:true, lic:"", weight:1.4
+  };
+}
+const EDITORIAL = ((window.LEDGER_CONTENT && window.LEDGER_CONTENT.articles) || []).map(makeEditorial);
+function weeklyItem(){ return EDITORIAL.find(a=>a.weekly) || null; }
 
 /* ------------------------- 4. feed loading ------------------------- */
 function parseFeed(xmlText, src){
@@ -891,7 +893,7 @@ function commit(items, opts){
   });
   clean.sort((a,b)=> b.ts - a.ts);
   if(clean.length){
-    S.items = clean.concat([WEEKLY, DEMO]);
+    S.items = clean.concat(EDITORIAL, [DEMO]);
     S.stale=false;
     S.banner = (opts && opts.partial) ? "Still gathering the longer reads…" : "";
     writeCache(clean);
@@ -917,7 +919,7 @@ async function loadFeeds(opts){
   // built-in page — while the network works.
   if(!S.items.length){
     const cached = store.get(LS.cache,null);
-    S.items = (cached && cached.items && cached.items.length) ? cached.items.concat([WEEKLY, DEMO]) : [WEEKLY, DEMO];
+    S.items = (cached && cached.items && cached.items.length) ? cached.items.concat(EDITORIAL, [DEMO]) : EDITORIAL.concat([DEMO]);
     S.stale = !!(cached && cached.items && cached.items.length);
   }
   S.banner = silent ? S.banner : (S.stale ? "Refreshing from public feeds…" : "Fetching live stories from public feeds…");
@@ -971,7 +973,8 @@ function composeFront(real){
     for(const k of order){ if(q[k].length){ out.push(q[k].shift()); break; } }
   }
 
-  const page = out.concat(S.wim ? [S.wim] : [], [WEEKLY]);   // what the reader actually sees
+  const wk = weeklyItem();
+  const page = out.concat(S.wim ? [S.wim] : [], wk ? [wk] : []);   // what the reader actually sees
   S.mix = {
     news:     page.filter(i=>(i.kind||"news")==="news").length,
     analysis: page.filter(i=>i.kind==="analysis").length,
@@ -993,15 +996,15 @@ function visible(){
     list = Array.from(byId.values()).sort((a,b)=>(S.saved[b.id]||0)-(S.saved[a.id]||0));
   }
   else if(S.section==="Front page"){
-    const real = list.filter(i=>!i.demo && !i.ledger);
-    if(real.length){
-      list = composeFront(real).concat([DEMO]);
+    // the front page is The Ledger's own journalism; the wires live in the Newsstand
+    if(EDITORIAL.length){
+      list = composeFront(EDITORIAL.filter(i=>!i.weekly)).concat([DEMO]);
     }else{
-      // nothing fetched yet: the weekly deep dive leads, the about page follows
       S.wim = null; S.mix = null;
-      list = [WEEKLY, DEMO];
+      list = [DEMO];
     }
   }
+  else if(S.section==="Newsstand"){ list = list.filter(i=>!i.demo && !i.ledger); }
   else list = list.filter(i=>i.section===S.section);
   if(S.query){
     const q=S.query.toLowerCase();
@@ -1036,12 +1039,13 @@ function wimCardHTML(it){
   return `<article class="card wim" data-id="${it.id}">
     <p class="wimlabel">Why it matters</p>
     <h2 class="hl">${esc(it.title)}</h2>
-    <p class="wimnote">${esc(ledgerNote(it))}</p>
-    <div class="meta"><span class="badge">${esc(it.source)}</span><span class="dot">${when(it.ts)}</span><span class="dot">Context by The Ledger</span></div>
+    <p class="wimnote">${esc(it.ledger ? it.standfirst : ledgerNote(it))}</p>
+    <div class="meta"><span class="badge">${esc(it.source)}</span><span class="dot">${when(it.ts)}</span><span class="dot">${it.ledger?"Analysis by The Ledger":"Context by The Ledger"}</span></div>
   </article>`;
 }
 function weeklyCardHTML(){
-  const it = WEEKLY;
+  const it = weeklyItem();
+  if(!it) return "";
   return `<article class="card weekly" data-id="${it.id}">
     <p class="weeklylabel">The Ledger Weekly · Deep dive</p>
     <h2 class="hl">${esc(it.title)}</h2>
@@ -1081,13 +1085,13 @@ function render(){
   // the editorial furniture appears on the composed front page, not in search
   // results or section tabs: the why-it-matters card after the opening news
   // block, the weekly deep dive a little further down
-  const extras = S.section==="Front page" && !S.query && list.some(i=>!i.demo && !i.ledger);
+  const extras = S.section==="Front page" && !S.query && list.some(i=>!i.demo);
   let wimDone = !(extras && S.wim), weeklyDone = !extras;
-  let html = bannerHTML() + cardHTML(lead,true);
+  let html = (S.section==="Front page" ? "" : bannerHTML()) + cardHTML(lead,true);
   rest.forEach((i,idx)=>{
     html += cardHTML(i,false);
     if(!wimDone && idx>=2){ html += wimCardHTML(S.wim); wimDone = true; }
-    if(!weeklyDone && idx>=6){ html += weeklyCardHTML(); weeklyDone = true; }
+    if(!weeklyDone && idx>=4){ html += weeklyCardHTML(); weeklyDone = true; }
   });
   if(!wimDone) html += wimCardHTML(S.wim);
   if(!weeklyDone) html += weeklyCardHTML();
@@ -1096,7 +1100,7 @@ function render(){
   const most = S.items.filter(i=>!i.demo && !i.ledger && i.fullText && i.kind!=="news").slice()
                  .sort((a,b)=>scoreOf(b)-scoreOf(a)).slice(0,5);
   rail.innerHTML = most.length ?
-    `<p class="railhead">Long reads</p><ol class="rail">` +
+    `<p class="railhead">From the newsstand</p><ol class="rail">` +
       most.map(i=>`<li data-id="${i.id}"><div><h3 class="hl">${esc(i.title)}</h3>
         <div class="meta"><span class="badge">${esc(i.source)}</span><span class="dot">${when(i.ts)}</span></div></div></li>`).join("") +
     `</ol>` : "";
@@ -1163,7 +1167,10 @@ function openReader(it){
   let body, wimBox = "", attr = "";
   if(mode==="ledger"){
     body = it.html;
-    attr = it.demo ? "" : `<p class="attrline">Original analysis by <strong>The Ledger</strong>.</p>`;
+    const srcs = (it.sources||[]).map(s=>
+      `<li><a href="${esc(s.u)}" target="_blank" rel="noopener noreferrer">${esc(s.t)}</a> — ${esc(s.p)}</li>`).join("");
+    wimBox = srcs ? `<aside class="sourcesbox"><h3>Sources & further reading</h3><ul>${srcs}</ul></aside>` : "";
+    attr = it.demo ? "" : `<p class="attrline">Reported and written by <strong>The Ledger</strong>. Material sources are credited and linked above; quotations are brief and attributed.</p>`;
   }else if(mode==="licensed"){
     body = it.html;
     wimBox = `<aside class="wimbox"><h3>Why it matters</h3><p>${esc(ledgerNote(it))}</p><p class="wimsig">— The Ledger</p></aside>`;
