@@ -345,7 +345,7 @@ async def main():
         await page.evaluate("closeReader()")
 
         # launch plumbing: feedback link present; analytics silent until a code is set
-        fb = await page.evaluate("""() => !!document.querySelector('#settings a[href*="github.com/sudipbha/the-ledger/issues"]')""")
+        fb = await page.evaluate("""() => !!document.querySelector('#settings a[href*="github.com/readtheledger/readtheledger.github.io/issues"]')""")
         ok("feedback link in settings", fb)
         pixel_only = await page.evaluate("""() => {
           // image-ping only, single host, and never a script: the mechanism is
