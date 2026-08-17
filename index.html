@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
+<title>The Ledger — Finance, read properly</title>
+<meta name="description" content="A quiet reader for high-quality, free-to-read financial journalism.">
+<meta name="theme-color" content="#FFF1E5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#12100E" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="The Ledger">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,800;1,500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ---------- tokens ---------- */
+:root{
+  --paper:#FFF1E5;
+  --paper-2:#F2E5DA;
+  --ink:#12100E;
+  --ink-2:#33302C;
+  --ink-3:#6B6560;
+  --rule:#DCCFC4;
+  --rule-2:#C9BAAE;
+  --accent:#0F5499;      /* FT-ish blue */
+  --accent-2:#990F3D;    /* FT-ish claret */
+  --teal:#0D7680;
+  --chip:#FFFFFF;
+  --shadow:0 8px 30px rgba(18,16,14,.10);
+  --serif:"Source Serif 4",Charter,Georgia,"Times New Roman",serif;
+  --display:"Playfair Display",Georgia,serif;
+  --ui:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --fs:1rem;             /* user text-size control */
+  --maxw:720px;
+  --safe-t:env(safe-area-inset-top,0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-l:env(safe-area-inset-left,0px);
+  --safe-r:env(safe-area-inset-right,0px);
+}
+html[data-theme="dark"]{
+  --paper:#12100E;
+  --paper-2:#1C1917;
+  --ink:#F5EFE8;
+  --ink-2:#DCD4CB;
+  --ink-3:#9C948C;
+  --rule:#332E29;
+  --rule-2:#463F39;
+  --accent:#6FA8DC;
+  --accent-2:#E4718F;
+  --teal:#5FC2CC;
+  --chip:#1C1917;
+  --shadow:0 8px 30px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--serif);font-size:var(--fs);line-height:1.6;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  padding-left:var(--safe-l);padding-right:var(--safe-r);
+}
+button,input,select{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+a{color:inherit}
+.tap{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- masthead ---------- */
+header.masthead{
+  position:sticky;top:0;z-index:40;background:var(--paper);
+  padding-top:var(--safe-t);border-bottom:1px solid var(--rule);
+}
+.mast-row{display:flex;align-items:center;gap:8px;padding:6px 14px 8px;max-width:1100px;margin:0 auto}
+.wordmark{font-family:var(--display);font-weight:800;font-size:1.4rem;letter-spacing:-.02em;line-height:1;flex:1;min-width:0}
+.wordmark span{color:var(--accent-2)}
+.datestrip{font-family:var(--ui);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);padding:0 14px 6px;max-width:1100px;margin:0 auto}
+.icobtn{width:44px;height:44px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-2)}
+.icobtn:active{background:var(--paper-2)}
+.icobtn svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+
+/* section nav */
+nav.sections{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-top:1px solid var(--rule)}
+nav.sections::-webkit-scrollbar{display:none}
+.sections-inner{display:flex;gap:4px;padding:0 10px;max-width:1100px;margin:0 auto;width:max-content;min-width:100%}
+.seclink{
+  font-family:var(--ui);font-size:.74rem;font-weight:600;letter-spacing:.02em;
+  padding:11px 10px;white-space:nowrap;color:var(--ink-3);border-bottom:2px solid transparent;min-height:44px
+}
+.seclink[aria-current="true"]{color:var(--ink);border-bottom-color:var(--accent-2)}
+
+/* search bar */
+.searchwrap{padding:10px 14px;border-top:1px solid var(--rule);display:none;max-width:1100px;margin:0 auto}
+.searchwrap.on{display:block}
+.searchwrap input{
+  width:100%;padding:12px 14px;border:1px solid var(--rule-2);border-radius:10px;
+  background:var(--chip);font-family:var(--ui);font-size:.95rem;min-height:44px
+}
+
+/* progress bar */
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--accent-2);z-index:60;transition:width .1s linear}
+
+/* ---------- layout ---------- */
+main{max-width:1100px;margin:0 auto;padding:0 14px calc(96px + var(--safe-b))}
+.pull{display:flex;align-items:center;justify-content:center;height:0;overflow:hidden;font-family:var(--ui);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);transition:height .18s ease}
+.pull.on{height:34px}
+
+/* cards */
+.kicker{font-family:var(--ui);font-size:.63rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-2);margin:0 0 6px}
+.hl{font-family:var(--display);font-weight:700;letter-spacing:-.015em;line-height:1.12;margin:0}
+.standfirst{color:var(--ink-2);margin:8px 0 0;font-size:1rem;line-height:1.5}
+.meta{font-family:var(--ui);font-size:.68rem;color:var(--ink-3);margin-top:10px;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;flex-wrap:nowrap}
+.meta>span{overflow:hidden;text-overflow:ellipsis}
+.meta .badge{flex:0 0 auto}
+.badge{font-family:var(--ui);font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);border:1px solid var(--rule-2);border-radius:3px;padding:2px 5px}
+.dot::before{content:"·";margin-right:6px}
+
+article.card{padding:18px 0;border-bottom:1px solid var(--rule);cursor:pointer}
+article.card:first-of-type{padding-top:16px}
+article.card.lead .hl{font-size:clamp(1.9rem,7.6vw,2.6rem)}
+article.card.lead .standfirst{font-size:1.06rem}
+article.card:not(.lead) .hl{font-size:clamp(1.15rem,4.6vw,1.4rem)}
+article.card.read .hl,article.card.read .standfirst{opacity:.55}
+.cardtop{display:flex;gap:14px;align-items:flex-start}
+.cardtop>div{flex:1;min-width:0}
+.savebtn{color:var(--ink-3);flex:0 0 44px}
+.savebtn[aria-pressed="true"]{color:var(--accent-2)}
+.savebtn svg{width:19px;height:19px}
+
+.railhead{font-family:var(--ui);font-size:.66rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--ink);border-top:3px double var(--rule-2);padding-top:10px;margin:26px 0 4px}
+ol.rail{list-style:none;margin:0;padding:0;counter-reset:r}
+ol.rail li{counter-increment:r;display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--rule);cursor:pointer;align-items:flex-start}
+ol.rail li::before{content:counter(r);font-family:var(--display);font-weight:700;font-size:1.5rem;color:var(--rule-2);line-height:1;min-width:22px}
+ol.rail .hl{font-size:1rem;line-height:1.25}
+
+.notice{border:1px solid var(--rule-2);border-radius:12px;padding:16px;margin:18px 0;background:var(--paper-2);font-size:.95rem}
+.notice h3{font-family:var(--ui);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;margin:0 0 8px;color:var(--ink-3)}
+.btn{
+  font-family:var(--ui);font-size:.82rem;font-weight:600;border:1px solid var(--ink);border-radius:999px;
+  padding:11px 18px;min-height:44px;display:inline-flex;align-items:center;gap:8px;justify-content:center
+}
+.btn.solid{background:var(--ink);color:var(--paper)}
+.btn.ghost{border-color:var(--rule-2);color:var(--ink-2)}
+.btn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.skel{height:14px;background:linear-gradient(90deg,var(--paper-2),var(--rule),var(--paper-2));background-size:200% 100%;animation:sh 1.2s infinite;border-radius:3px;margin:9px 0}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ---------- reader ---------- */
+#reader{position:fixed;inset:0;z-index:70;background:var(--paper);overflow-y:auto;-webkit-overflow-scrolling:touch;transform:translateX(100%);transition:transform .26s ease;visibility:hidden}
+#reader.on{transform:none;visibility:visible}
+.rbar{position:sticky;top:0;background:var(--paper);border-bottom:1px solid var(--rule);padding-top:var(--safe-t);z-index:5}
+.rbar-in{display:flex;align-items:center;gap:2px;padding:4px 8px;max-width:var(--maxw);margin:0 auto}
+.rbar-in .spacer{flex:1}
+.rwrap{max-width:var(--maxw);margin:0 auto;padding:22px 18px calc(150px + var(--safe-b))}
+.rwrap h1{font-family:var(--display);font-weight:700;font-size:clamp(1.75rem,7vw,2.45rem);line-height:1.13;letter-spacing:-.015em;margin:6px 0 0}
+.rstand{font-size:1.1rem;color:var(--ink-2);margin:14px 0 0;line-height:1.5}
+.rmeta{font-family:var(--ui);font-size:.72rem;color:var(--ink-3);margin:16px 0;padding:14px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.byline{font-family:var(--ui);font-weight:600;color:var(--ink);font-size:.8rem}
+.rbody{font-size:calc(var(--fs) * 1.08);line-height:1.75}
+.rbody p{margin:0 0 1.15em}
+.rbody>p:first-of-type::first-letter{
+  font-family:var(--display);font-weight:700;float:left;font-size:3.6em;line-height:.82;
+  margin:.06em .1em 0 0;color:var(--ink)
+}
+.rbody blockquote{margin:1.6em 0;padding:0 0 0 16px;border-left:3px solid var(--accent-2);font-family:var(--display);font-size:1.28em;line-height:1.35;font-style:italic;color:var(--ink)}
+.rbody h2,.rbody h3{font-family:var(--display);font-weight:700;line-height:1.2;margin:1.7em 0 .5em}
+.rbody img{max-width:100%;height:auto;border-radius:6px;display:block;margin:1.4em 0}
+.rbody figcaption,.rbody small{font-family:var(--ui);font-size:.72rem;color:var(--ink-3)}
+.rbody a{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+.rbody ul,.rbody ol{padding-left:1.2em}
+.rule{border:0;border-top:3px double var(--rule-2);margin:30px 0}
+.srcbox{font-family:var(--ui);font-size:.82rem;color:var(--ink-3);line-height:1.5}
+.srcbox a{color:var(--accent);font-weight:600}
+
+/* audio dock */
+#dock{
+  position:fixed;left:0;right:0;bottom:0;z-index:80;background:var(--chip);
+  border-top:1px solid var(--rule-2);box-shadow:var(--shadow);
+  padding:10px 14px calc(10px + var(--safe-b));transform:translateY(110%);transition:transform .25s ease
+}
+#dock.on{transform:none}
+.dock-top{display:flex;align-items:center;gap:10px;max-width:var(--maxw);margin:0 auto}
+.dock-title{flex:1;min-width:0;font-family:var(--ui);font-size:.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dock-sub{font-family:var(--ui);font-size:.66rem;color:var(--ink-3)}
+.dock-row{display:flex;align-items:center;gap:6px;max-width:var(--maxw);margin:4px auto 0}
+#seek{flex:1;-webkit-appearance:none;appearance:none;height:32px;background:none}
+#seek::-webkit-slider-runnable-track{height:3px;background:var(--rule-2);border-radius:3px}
+#seek::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent-2);margin-top:-6px}
+#seek::-moz-range-track{height:3px;background:var(--rule-2)}
+#seek::-moz-range-thumb{width:14px;height:14px;border:0;border-radius:50%;background:var(--accent-2)}
+.time{font-family:var(--ui);font-size:.66rem;color:var(--ink-3);font-variant-numeric:tabular-nums;min-width:38px;text-align:center}
+.rate{font-family:var(--ui);font-size:.7rem;font-weight:700;border:1px solid var(--rule-2);border-radius:999px;padding:0 9px;height:32px;min-width:46px}
+
+/* sheets */
+.sheet{position:fixed;inset:0;z-index:90;display:none}
+.sheet.on{display:block}
+.sheet .veil{position:absolute;inset:0;background:rgba(18,16,14,.45);backdrop-filter:blur(2px)}
+.sheet .panel{
+  position:absolute;left:0;right:0;bottom:0;background:var(--paper);border-radius:16px 16px 0 0;
+  max-height:88dvh;overflow-y:auto;padding:8px 18px calc(26px + var(--safe-b));box-shadow:var(--shadow)
+}
+.grab{width:40px;height:4px;border-radius:4px;background:var(--rule-2);margin:8px auto 14px}
+.sheet h2{font-family:var(--display);font-size:1.35rem;margin:0 0 4px}
+.field{margin:18px 0 0}
+.field label{display:block;font-family:var(--ui);font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:7px}
+.field input[type=password],.field input[type=text],.field select{
+  width:100%;padding:12px 13px;min-height:44px;border:1px solid var(--rule-2);border-radius:10px;background:var(--chip);font-family:var(--ui);font-size:.92rem
+}
+.hint{font-family:var(--ui);font-size:.72rem;color:var(--ink-3);margin-top:7px;line-height:1.45}
+.rowbtns{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.seg{display:flex;border:1px solid var(--rule-2);border-radius:999px;overflow:hidden}
+.seg button{flex:1;font-family:var(--ui);font-size:.8rem;font-weight:600;padding:11px 8px;min-height:44px;color:var(--ink-3)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.feedlist{font-family:var(--ui);font-size:.76rem;color:var(--ink-2);margin-top:8px}
+.feedlist div{padding:9px 0;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;gap:10px}
+.feedlist .st{color:var(--ink-3);font-size:.7rem;white-space:nowrap}
+
+/* toast */
+#toast{
+  position:fixed;left:50%;bottom:calc(28px + var(--safe-b));transform:translate(-50%,20px);
+  background:var(--ink);color:var(--paper);font-family:var(--ui);font-size:.8rem;font-weight:600;
+  padding:11px 18px;border-radius:999px;z-index:120;opacity:0;pointer-events:none;transition:.22s ease;max-width:88vw;text-align:center
+}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#dock.on ~ #toast{bottom:calc(120px + var(--safe-b))}
+
+@media (min-width:820px){
+  .grid{display:grid;grid-template-columns:1fr 300px;gap:34px;align-items:start}
+  .railcol{position:sticky;top:150px}
+  article.card.lead .hl{font-size:3rem}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<header class="masthead">
+  <div class="mast-row">
+    <div class="wordmark">The Ledger<span>.</span></div>
+    <button class="icobtn tap" id="btnSearch" aria-label="Search">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    </button>
+    <button class="icobtn tap" id="btnSaved" aria-label="Saved articles">
+      <svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>
+    </button>
+    <button class="icobtn tap" id="btnTheme" aria-label="Toggle dark mode">
+      <svg viewBox="0 0 24 24"><path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/></svg>
+    </button>
+    <button class="icobtn tap" id="btnSettings" aria-label="Settings">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M4.5 12H2M22 12h-2.5M6.2 6.2 4.6 4.6M19.4 19.4l-1.6-1.6M17.8 6.2l1.6-1.6M4.6 19.4l1.6-1.6"/></svg>
+    </button>
+  </div>
+  <div class="datestrip" id="datestrip"></div>
+  <nav class="sections" aria-label="Sections"><div class="sections-inner" id="secnav"></div></nav>
+  <div class="searchwrap" id="searchwrap">
+    <input id="q" type="search" placeholder="Search headlines, sources, topics…" autocomplete="off" enterkeyhint="search">
+  </div>
+</header>
+
+<main>
+  <div class="pull" id="pullIndicator">Release to refresh</div>
+  <div class="grid">
+    <div><div id="feed"></div></div>
+    <div class="railcol"><div id="railHost"></div></div>
+  </div>
+</main>
+
+<!-- ================= READER ================= -->
+<section id="reader" aria-hidden="true">
+  <div class="rbar">
+    <div class="rbar-in">
+      <button class="icobtn tap" id="rBack" aria-label="Back to front page">
+        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <div class="spacer"></div>
+      <button class="icobtn tap" id="rListen" aria-label="Listen to this article">
+        <svg viewBox="0 0 24 24"><path d="M4 14v-3a8 8 0 0 1 16 0v3"/><path d="M4 14a2.4 2.4 0 0 0 2.4 2.4h.6V14H4zM20 14a2.4 2.4 0 0 1-2.4 2.4H17V14h3z"/><path d="M17 16.4V18a3 3 0 0 1-3 3h-2"/></svg>
+      </button>
+      <button class="icobtn tap" id="rCopy" aria-label="Copy article">
+        <svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 5.5A1.5 1.5 0 0 0 13.5 4h-8A1.5 1.5 0 0 0 4 5.5v8A1.5 1.5 0 0 0 5.5 15"/></svg>
+      </button>
+      <button class="icobtn tap" id="rShare" aria-label="Share article">
+        <svg viewBox="0 0 24 24"><path d="M12 16V4"/><path d="M8 8l4-4 4 4"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>
+      </button>
+      <button class="icobtn tap" id="rSave" aria-label="Save article" aria-pressed="false">
+        <svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="rwrap" id="rwrap"></div>
+</section>
+
+<!-- ================= AUDIO DOCK ================= -->
+<div id="dock" role="region" aria-label="Article audio player">
+  <div class="dock-top">
+    <button class="icobtn tap" id="dPlay" aria-label="Play or pause">
+      <svg viewBox="0 0 24 24" id="dPlayIcon"><path d="M7 4l12 8-12 8z" fill="currentColor" stroke="none"/></svg>
+    </button>
+    <div style="flex:1;min-width:0">
+      <div class="dock-title" id="dTitle">—</div>
+      <div class="dock-sub" id="dSub">Idle</div>
+    </div>
+    <button class="icobtn tap" id="dBack15" aria-label="Back 15 seconds">
+      <svg viewBox="0 0 24 24"><path d="M11 8H6.5V3.5"/><path d="M6.6 8.1A7.5 7.5 0 1 1 4.5 13"/></svg>
+    </button>
+    <button class="icobtn tap" id="dFwd15" aria-label="Forward 15 seconds">
+      <svg viewBox="0 0 24 24"><path d="M13 8h4.5V3.5"/><path d="M17.4 8.1A7.5 7.5 0 1 0 19.5 13"/></svg>
+    </button>
+    <button class="icobtn tap" id="dClose" aria-label="Close player">
+      <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div class="dock-row">
+    <span class="time" id="dCur">0:00</span>
+    <input id="seek" type="range" min="0" max="1000" value="0" aria-label="Seek">
+    <span class="time" id="dDur">0:00</span>
+    <button class="rate tap" id="dRate" aria-label="Playback speed">1.0×</button>
+  </div>
+</div>
+
+<!-- ================= SETTINGS SHEET ================= -->
+<div class="sheet" id="settings" role="dialog" aria-modal="true" aria-label="Settings">
+  <div class="veil" data-close></div>
+  <div class="panel">
+    <div class="grab"></div>
+    <h2>Settings</h2>
+    <p class="hint">Everything here is stored on this device only.</p>
+
+    <div class="field">
+      <label for="apikey">OpenAI API key — for high-quality Listen</label>
+      <input id="apikey" type="password" placeholder="sk-…" autocomplete="off" spellcheck="false">
+      <p class="hint">Kept in this browser's local storage and sent only to <strong>api.openai.com</strong>. Never uploaded anywhere else. Without a key, Listen falls back to your device's built-in voice.</p>
+    </div>
+
+    <div class="field">
+      <label for="model">Speech model</label>
+      <select id="model">
+        <option value="gpt-4o-mini-tts">gpt-4o-mini-tts — best quality/price</option>
+        <option value="tts-1-hd">tts-1-hd — high fidelity</option>
+        <option value="tts-1">tts-1 — fastest</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="voice">Voice</label>
+      <select id="voice">
+        <option value="onyx">Onyx — deep, anchor-like</option>
+        <option value="nova">Nova — bright, brisk</option>
+        <option value="alloy">Alloy — neutral</option>
+        <option value="echo">Echo — warm</option>
+        <option value="fable">Fable — expressive British</option>
+        <option value="shimmer">Shimmer — light</option>
+        <option value="sage">Sage — calm</option>
+      </select>
+      <p class="hint" id="costHint"></p>
+    </div>
+
+    <div class="field">
+      <label>Text size</label>
+      <div class="seg" id="segSize">
+        <button data-size="0.94" aria-pressed="false">Small</button>
+        <button data-size="1" aria-pressed="true">Regular</button>
+        <button data-size="1.09" aria-pressed="false">Large</button>
+        <button data-size="1.2" aria-pressed="false">XL</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Appearance</label>
+      <div class="seg" id="segTheme">
+        <button data-theme="light" aria-pressed="true">Light</button>
+        <button data-theme="dark" aria-pressed="false">Dark</button>
+        <button data-theme="auto" aria-pressed="false">Auto</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Sources <span style="font-weight:400;text-transform:none;letter-spacing:0">(last refresh)</span></label>
+      <div class="feedlist" id="feedstatus"></div>
+      <p class="hint">Only publicly available RSS/Atom feeds are used. Nothing behind a paywall or login is fetched, and full articles always link back to the publisher.</p>
+    </div>
+
+    <div class="rowbtns">
+      <button class="btn solid" id="saveSettings">Save</button>
+      <button class="btn ghost" id="clearAudio">Clear audio cache</button>
+      <button class="btn ghost" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<audio id="player" preload="auto" playsinline></audio>
+
+<script>
+"use strict";
+/* =======================================================================
+   The Ledger — a quiet reader for free, high-quality financial journalism.
+   Single-page app. No tracking, no ads, no paywall circumvention.
+   ======================================================================= */
+
+/* ------------------------- 1. sources ------------------------- */
+/* Every feed below was checked by hand: public, free to read, no paywall and no
+   login. h:true marks a heavy full-text feed, fetched in a second wave so the
+   front page appears fast.  (Nothing from the FT, WSJ, Bloomberg or The
+   Economist is included by design.) */
+const SOURCES = [
+  // ---- news desks with open feeds ----
+  {n:"CNBC Markets",       u:"https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664", s:"Markets", q:0.9},
+  {n:"CNBC Economy",       u:"https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=20910258", s:"Economics", q:0.95},
+  {n:"MarketWatch",        u:"https://feeds.content.dowjones.io/public/rss/mw_topstories", s:"Markets", q:0.95},
+  {n:"Yahoo Finance",      u:"https://finance.yahoo.com/news/rssindex",                   s:"Markets", q:0.85},
+  {n:"Business Insider",   u:"https://markets.businessinsider.com/rss/news",              s:"Markets", q:0.85},
+  {n:"BBC Business",       u:"https://feeds.bbci.co.uk/news/business/rss.xml",            s:"Companies", q:1.0},
+  {n:"The Guardian",       u:"https://www.theguardian.com/uk/business/rss",               s:"Companies", h:true, q:1.05},
+  {n:"Fortune",            u:"https://fortune.com/feed/fortune-feeds/?id=3230629",        s:"Companies", h:true, q:1.0},
+  {n:"Semafor Business",   u:"https://www.semafor.com/rss.xml",                           s:"Companies", h:true, q:1.05},
+  // ---- central banks & official research ----
+  {n:"Federal Reserve",    u:"https://www.federalreserve.gov/feeds/press_all.xml",        s:"Central Banks", q:1.15},
+  {n:"Fed Speeches",       u:"https://www.federalreserve.gov/feeds/speeches.xml",         s:"Central Banks", q:1.15},
+  {n:"FEDS Notes",         u:"https://www.federalreserve.gov/feeds/feds_notes.xml",       s:"Economics", q:1.25},
+  {n:"ECB",                u:"https://www.ecb.europa.eu/rss/press.html",                  s:"Central Banks", q:1.15},
+  {n:"Bank of England",    u:"https://www.bankofengland.co.uk/rss/news",                  s:"Central Banks", q:1.15},
+  {n:"FRED Blog",          u:"https://fredblog.stlouisfed.org/feed/",                     s:"Economics", q:1.2},
+  // ---- Creative Commons / academic ----
+  {n:"The Conversation",   u:"https://theconversation.com/us/business/articles.atom",     s:"Opinion", h:true, q:1.2},
+  // ---- independent analysts publishing in full ----
+  {n:"Calculated Risk",    u:"https://calculatedrisk.substack.com/feed",                  s:"Economics", h:true, q:1.25},
+  {n:"Marginal Revolution",u:"https://marginalrevolution.com/feed",                       s:"Economics", q:1.2},
+  {n:"Econbrowser",        u:"https://econbrowser.com/feed",                              s:"Economics", q:1.25},
+  {n:"Apricitas",          u:"https://www.apricitas.io/feed",                             s:"Economics", h:true, q:1.3},
+  {n:"Noahpinion",         u:"https://www.noahpinion.blog/feed",                          s:"Opinion", h:true, q:1.25},
+  {n:"Klement on Investing",u:"https://klementoninvesting.substack.com/feed",             s:"Opinion", h:true, q:1.25},
+  {n:"The Big Picture",    u:"https://ritholtz.com/feed/",                                s:"Opinion", h:true, q:1.15},
+  {n:"Damodaran",          u:"https://aswathdamodaran.blogspot.com/feeds/posts/default?alt=rss", s:"Opinion", h:true, q:1.3},
+  {n:"Abnormal Returns",   u:"https://abnormalreturns.com/feed/",                         s:"Markets", h:true, q:1.05},
+  {n:"A Wealth of Common Sense",u:"https://awealthofcommonsense.com/feed/",               s:"Personal Finance", q:1.2},
+  {n:"Of Dollars And Data",u:"https://ofdollarsanddata.com/feed/",                        s:"Personal Finance", h:true, q:1.2}
+];
+
+const SECTIONS = ["Front page","Markets","Companies","Economics","Central Banks","Opinion","Tech & Finance","Personal Finance","Saved"];
+
+/* keyword → section, so items land in a sensible place regardless of feed */
+const TAGS = [
+  ["Central Banks",/\b(fed|fomc|ecb|boe|boj|federal reserve|central bank(s|ing)?|monetary polic\w+|rate (cut|hike|rise|decision)s?|basis points|quantitative (easing|tightening)|policy rate)\b/gi],
+  ["Companies",    /\b(earnings|revenues?|quarterly results|mergers?|acquisitions?|ipo|ceo|chief executive|layoffs?|guidance|buybacks?|dividends?|antitrust|takeovers?|profits?)\b/gi],
+  ["Markets",      /\b(stocks?|equit\w+|bonds?|yields?|treasur\w+|s&p|nasdaq|dow|index(es)?|crude|oil price\w*|gold price\w*|currenc\w+|dollar|forex|commodit\w+|markets?|rall(y|ies)|sell-?off|volatilit\w+|credit spreads?)\b/gi],
+  ["Tech & Finance",/\b(ai|artificial intelligence|fintech|crypto\w*|bitcoin|ethereum|stablecoins?|semiconductors?|chipmakers?|data cent\w+|cloud computing|nvidia|software)\b/gi],
+  ["Personal Finance",/\b(retirement|401k|401\(k\)|roth|mortgages?|savings?|portfolios?|index funds?|etfs?|budgeting|credit cards?|insurance|financial advis\w+|estate planning)\b/gi],
+  ["Economics",    /\b(inflation|cpi|pce|gdp|unemployment|payrolls?|jobs report|recession|productivit\w+|trade deficit|tariffs?|housing starts?|consumer spending|econom\w+|labou?r market)\b/gi],
+  ["Opinion",      /\b(opinion|commentary|the case (for|against)|column|essay|why .{0,40}\?)\b/gi]
+];
+
+/* CORS relays, tried in order. RSS is public, but browsers block cross-origin XML. */
+const RELAYS = [
+  u => "https://api.allorigins.win/raw?url=" + encodeURIComponent(u),
+  u => "https://corsproxy.io/?url=" + encodeURIComponent(u),
+  u => "https://api.codetabs.com/v1/proxy/?quest=" + encodeURIComponent(u)
+];
+
+/* ------------------------- 2. state ------------------------- */
+const LS = {
+  key:"ledger.apikey", model:"ledger.model", voice:"ledger.voice", theme:"ledger.theme",
+  size:"ledger.size", saved:"ledger.saved", read:"ledger.read", cache:"ledger.cache"
+};
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem(k); return v===null?d:JSON.parse(v); }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+
+const S = {
+  items:[], section:"Front page", query:"",
+  saved:store.get(LS.saved,{}), read:store.get(LS.read,{}),
+  feedStatus:[], current:null, loading:false, banner:"", stale:false
+};
+
+const $  = (s,r)=> (r||document).querySelector(s);
+const $$ = (s,r)=> Array.from((r||document).querySelectorAll(s));
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function toast(msg,ms){
+  const t=$("#toast"); t.textContent=msg; t.classList.add("on");
+  clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("on"), ms||1900);
+}
+
+/* ------------------------- 3. demo article (offline safety net) -------------
+   Written by The Ledger itself so the reading experience, Listen and Copy all
+   work before any network call succeeds. Not attributed to any publisher.     */
+const DEMO = {
+  id:"demo-1", source:"The Ledger", section:"About", author:"The Ledger",
+  date:new Date().toISOString(), link:"", demo:true, words:430, fullText:true,
+  title:"A quiet place to read the market, one story at a time",
+  standfirst:"This built-in page shows you the reading experience: the typography, the Listen button and one-tap copy. Pull down on the front page to load live stories from public feeds.",
+  html:`<p>The Ledger does one thing: it collects financial journalism that is free to read on the open web and puts it in front of you without clutter. There are no adverts, no trackers, no pop-ups asking for your email, and nothing here reaches past a publisher's paywall. Every story keeps its byline, its publication and a link home.</p>
+  <p>The front page is arranged the way a newspaper is arranged. One lead story sits at the top, secondary stories follow underneath, and a <em>Most read</em> rail collects what the sources are pushing hardest right now. Tap any headline to open it. Tap the bookmark to keep it.</p>
+  <blockquote>Reading well is mostly a matter of removing things: the interruptions, the autoplay video, the third request to accept cookies.</blockquote>
+  <h2>Listening</h2>
+  <p>The headphone button reads the article aloud. If you have added your own OpenAI API key in Settings, it uses OpenAI's speech models, which sound close to a human presenter; long pieces are split into chunks, queued seamlessly, and cached on your device so the same article is never paid for twice. Without a key it falls back to the voice built into your phone, so the button always works.</p>
+  <h2>Copying</h2>
+  <p>The copy button puts the whole piece on your clipboard as clean plain text — headline, publication, author, date, the original link, then the body — ready to paste into notes, a document, or a message to whoever needs to read it next.</p>
+  <h2>Where the stories come from</h2>
+  <p>Wire services and mainstream business desks that publish open feeds; central banks and official researchers including the Federal Reserve, the ECB, the Bank of England, the BIS, the IMF and the World Bank; Creative Commons outlets; and a shortlist of independent analysts who publish in full to open feeds. You can see the full list, and how each one is behaving, in Settings.</p>`
+};
+DEMO.text = htmlToText(DEMO.html);
+DEMO.ts = Date.parse(DEMO.date) || Date.now();
+
+/* ------------------------- 4. feed loading ------------------------- */
+function parseFeed(xmlText, src){
+  const doc = new DOMParser().parseFromString(xmlText,"text/xml");
+  if(doc.querySelector("parsererror")) throw new Error("bad xml");
+  const nodes = Array.from(doc.querySelectorAll("item, entry")).slice(0,20);
+  if(!nodes.length) throw new Error("empty feed");
+  return nodes.map(node=>{
+    const pick = (...names)=>{
+      for(const nm of names){
+        const el = node.querySelector(nm);
+        if(el && (el.textContent||"").trim()) return el.textContent.trim();
+      }
+      return "";
+    };
+    let link = pick("link");
+    if(!link){
+      const l = node.querySelector('link[rel="alternate"], link');
+      link = l ? (l.getAttribute("href")||"") : "";
+    }
+    if(link.startsWith("<")) link = "";
+    const rawHtml = pick("content\\:encoded","content","description","summary");
+    const title   = pick("title") || "Untitled";
+    const author  = pick("dc\\:creator","creator","author>name","author") || src.n;
+    const date    = pick("pubDate","published","updated","dc\\:date") || new Date().toISOString();
+    return makeItem({title, link, rawHtml, author, date, source:src.n, hintSection:src.s, weight:src.q||1});
+  });
+}
+
+function makeItem(o){
+  const clean = sanitize(o.rawHtml||"");
+  const text  = htmlToText(clean);
+  const title = decodeEntities(o.title).replace(/\s+/g," ").trim();
+  return {
+    id: hash(o.link || title),
+    title, link:o.link||"", weight:o.weight||1,
+    source:o.source, author:cleanAuthor(o.author),
+    date:o.date, ts:Date.parse(o.date)||Date.now(),
+    html:clean, text,
+    standfirst: firstSentences(text, 190),
+    words: text ? text.trim().split(/\s+/).length : 0,
+    section: classify(title+" "+text, o.hintSection),
+    fullText: (text.split(/\s+/).length > 220)
+  };
+}
+
+/* Weight of evidence, not first match: count the signals for each section and
+   take the strongest, so a passing mention of "the Fed" doesn't file a story
+   about national parks under Central Banks. */
+function classify(blob, hint){
+  const sample = String(blob||"").slice(0,2600);
+  let best=null, bestN=0;
+  for(const [sec,re] of TAGS){
+    re.lastIndex = 0;
+    const n = (sample.match(re)||[]).length;
+    if(n > bestN){ bestN=n; best=sec; }
+  }
+  if(bestN >= 2) return best;                 // clear signal
+  if(hint) return hint;                        // otherwise trust the feed
+  return best || "Markets";
+}
+function hash(s){ let h=0; s=String(s); for(let i=0;i<s.length;i++){ h=(h*31 + s.charCodeAt(i))|0; } return "a"+Math.abs(h).toString(36); }
+function decodeEntities(s){ const d=document.createElement("textarea"); d.innerHTML=String(s||""); return d.value; }
+function cleanAuthor(a){
+  a = decodeEntities(a||"").replace(/<[^>]+>/g,"").trim();
+  if(a.includes("@")) a = a.split("@")[0].replace(/[._]/g," ");
+  a = a.split(/,| and | \| /)[0].trim();      // drop job titles and co-author tails
+  return a.slice(0,46) || "Staff";
+}
+function sanitize(html){
+  const doc = new DOMParser().parseFromString("<div>"+decodeEntities(html)+"</div>","text/html");
+  doc.querySelectorAll("script,style,iframe,form,input,button,noscript,svg,video,audio,object,embed").forEach(n=>n.remove());
+  doc.querySelectorAll("*").forEach(el=>{
+    Array.from(el.attributes).forEach(at=>{
+      const n = at.name.toLowerCase();
+      const keep = (n==="href"&&el.tagName==="A") || (n==="src"&&el.tagName==="IMG") || n==="alt" || n==="title";
+      if(!keep || /^javascript:/i.test(at.value)) el.removeAttribute(at.name);
+    });
+    if(el.tagName==="A"){ el.setAttribute("target","_blank"); el.setAttribute("rel","noopener noreferrer"); }
+    if(el.tagName==="IMG"){ el.setAttribute("loading","lazy"); el.setAttribute("decoding","async"); }
+  });
+  return doc.body.firstChild ? doc.body.firstChild.innerHTML : "";
+}
+function htmlToText(html){
+  const d=document.createElement("div"); d.innerHTML=html||"";
+  d.querySelectorAll("p,div,li,h1,h2,h3,h4,blockquote,br").forEach(n=>n.insertAdjacentText("beforeend","\n"));
+  return (d.textContent||"").replace(/[ \t]+/g," ").replace(/\n{3,}/g,"\n\n").trim();
+}
+function firstSentences(text,max){
+  let t=(text||"").replace(/\s+/g," ").trim(); if(!t) return "";
+  // feeds often lead with a photo caption or credit — drop everything up to it
+  t = t.replace(/^.{0,260}?(getty images|shutterstock|associated press|ap photo|\/reuters|reuters\/|unsplash|istock|afp\b)[\s.,|:—-]*/i,"").trim();
+  t = t.replace(/^(photo|image|illustration|pictured)[\s:—-]+/i,"").trim();
+  if(t.length < 28 || /^(getty|reuters|photo|image|illustration)\b/i.test(t)) return "";
+  if(t.length<=max) return t;
+  const cut=t.slice(0,max); const stop=cut.lastIndexOf(". ");
+  return (stop>90 ? cut.slice(0,stop+1) : cut.replace(/\s\S*$/,"")+"…");
+}
+
+/* A light quality score, so the lead slot goes to something worth reading
+   rather than whatever landed most recently. Depth and provenance count;
+   wire filler is nudged down. */
+const FILLER = /premarket|biggest mov|stocks? to watch|what to watch|live updates?|briefing|round-?up|newsletter|podcast|photos of|in pictures|quiz/i;
+function scoreOf(it){
+  const hours = Math.max(0,(Date.now()-it.ts)/3.6e6);
+  const fresh = Math.exp(-hours/72);
+  const depth = 0.35 + 0.65*Math.min(1,(it.words||0)/800);
+  let s = (it.weight||1) * depth * fresh * (it.fullText?1.25:1);
+  if(FILLER.test(it.title)) s *= 0.55;
+  if(!it.standfirst) s *= 0.9;
+  return s;
+}
+
+async function fetchOne(src){
+  for(let i=0;i<RELAYS.length;i++){
+    try{
+      const ctl = new AbortController();
+      const to  = setTimeout(()=>ctl.abort(), 9000);
+      const res = await fetch(RELAYS[i](src.u), {signal:ctl.signal, cache:"no-store"});
+      clearTimeout(to);
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      const txt = await res.text();
+      const items = parseFeed(txt, src);
+      return {ok:true, items, via:"relay "+(i+1)};
+    }catch(e){ /* try next relay */ }
+  }
+  return {ok:false, items:[], via:"unavailable"};
+}
+
+async function harvest(list){
+  const out=[];
+  const results = await Promise.all(list.map(async src=>({src, ...(await fetchOne(src))})));
+  results.forEach(r=>{
+    S.feedStatus = S.feedStatus.filter(f=>f.n!==r.src.n);
+    S.feedStatus.push({n:r.src.n, ok:r.ok, count:r.items.length});
+    out.push(...r.items);
+  });
+  return out;
+}
+
+function commit(items, opts){
+  const seen=new Set(); const clean=[];
+  items.forEach(it=>{
+    const k = normTitle(it.title);
+    if(!k || seen.has(k)) return;
+    seen.add(k); clean.push(it);
+  });
+  clean.sort((a,b)=> b.ts - a.ts);
+  if(clean.length){
+    S.items = clean.concat([DEMO]);
+    S.stale=false;
+    S.banner = (opts && opts.partial) ? "Still gathering the longer reads…" : "";
+    try{ store.set(LS.cache,{at:Date.now(), items:clean.slice(0,120)}); }catch(e){}
+  }else if(!(opts && opts.partial)){
+    S.banner = "unreachable";
+  }
+  render(); renderFeedStatus();
+  return clean.length;
+}
+
+async function loadFeeds(opts){
+  if(S.loading) return; S.loading=true;
+  const silent = opts && opts.silent;
+
+  // Never show an empty screen: paint whatever is already on the device — or the
+  // built-in page — while the network works.
+  if(!S.items.length){
+    const cached = store.get(LS.cache,null);
+    S.items = (cached && cached.items && cached.items.length) ? cached.items.concat([DEMO]) : [DEMO];
+    S.stale = !!(cached && cached.items && cached.items.length);
+  }
+  S.banner = silent ? S.banner : (S.stale ? "Refreshing from public feeds…" : "Fetching live stories from public feeds…");
+  render();
+
+  // wave 1: light feeds, so the front page is usable in a couple of seconds
+  const light = await harvest(SOURCES.filter(s=>!s.h));
+  commit(light, {partial:true});
+
+  // wave 2: the big full-text feeds that make Listen and Copy worth having
+  const heavy = await harvest(SOURCES.filter(s=>s.h));
+  const total = commit(light.concat(heavy));
+
+  S.loading=false;
+  if(!silent) toast(total ? total+" stories loaded" : "Live feeds unreachable — showing what's saved on this device");
+}
+function normTitle(t){ return String(t||"").toLowerCase().replace(/[^a-z0-9 ]/g,"").replace(/\s+/g," ").trim().slice(0,70); }
+
+/* ------------------------- 5. rendering ------------------------- */
+function visible(){
+  let list = S.items.slice();
+  if(S.section==="Saved"){ list = list.filter(i=>S.saved[i.id]); }
+  else if(S.section==="Front page"){
+    const real = list.filter(i=>!i.demo);
+    if(real.length){
+      // lead slot: best-scoring story of the last three days; the rest by recency
+      const recent = real.filter(i=>Date.now()-i.ts < 72*3.6e6);
+      const pool = recent.length ? recent : real;
+      const best = pool.slice().sort((a,b)=>scoreOf(b)-scoreOf(a))[0];
+      list = [best].concat(real.filter(i=>i!==best), [DEMO]);
+    }else list = [DEMO];
+  }
+  else list = list.filter(i=>i.section===S.section);
+  if(S.query){
+    const q=S.query.toLowerCase();
+    list = list.filter(i=> (i.title+" "+i.source+" "+i.author+" "+i.standfirst).toLowerCase().includes(q));
+  }
+  return list;
+}
+
+function cardHTML(it, lead){
+  const savedOn = !!S.saved[it.id];
+  return `<article class="card ${lead?"lead":""} ${S.read[it.id]?"read":""}" data-id="${it.id}">
+    <div class="cardtop">
+      <div>
+        <p class="kicker">${esc(it.section)}</p>
+        <h2 class="hl">${esc(it.title)}</h2>
+        ${it.standfirst?`<p class="standfirst">${esc(it.standfirst)}</p>`:""}
+        <div class="meta">
+          <span class="badge">${esc(it.source)}</span>
+          ${sameName(it.author,it.source)?"":`<span>${esc(it.author)}</span>`}
+          <span class="dot">${when(it.ts)}</span>
+          ${it.words?`<span class="dot">${readMins(it.words)} min read</span>`:""}
+        </div>
+      </div>
+      <button class="icobtn tap savebtn" data-save="${it.id}" aria-pressed="${savedOn}" aria-label="${savedOn?"Remove bookmark":"Save article"}">
+        <svg viewBox="0 0 24 24" fill="${savedOn?"currentColor":"none"}" stroke="currentColor" stroke-width="1.7"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>
+      </button>
+    </div>
+  </article>`;
+}
+
+function bannerHTML(){
+  if(S.banner==="unreachable"){
+    return `<div class="notice">
+       <h3>Live feeds unreachable</h3>
+       <p style="margin:0 0 12px">The public relays this app uses to read RSS inside a browser didn't answer — you may be offline, or one is rate-limiting. Nothing is lost.</p>
+       <div class="rowbtns" style="margin:0"><button class="btn solid" id="retry">Try again</button></div>
+     </div>`;
+  }
+  if(S.banner){
+    return `<div class="notice"><h3>Working</h3><p style="margin:0">${esc(S.banner)}</p>
+      <div class="skel" style="width:60%"></div></div>`;
+  }
+  return "";
+}
+
+function render(){
+  const feed=$("#feed"), rail=$("#railHost");
+  let list = visible();
+
+  if(!list.length){
+    feed.innerHTML = bannerHTML() + `<div class="notice"><h3>Nothing here</h3><p style="margin:0">${
+      S.section==="Saved" ? "You haven't bookmarked anything yet. Tap the ribbon on any headline to keep it."
+                          : "No stories match. Try another section or clear the search."}</p></div>`;
+    rail.innerHTML=""; bindBanner(); return;
+  }
+
+  const lead = list[0], rest = list.slice(1, 26);
+  feed.innerHTML = bannerHTML() + cardHTML(lead,true) + rest.map(i=>cardHTML(i,false)).join("");
+
+  const most = S.items.filter(i=>!i.demo && i.fullText).slice()
+                 .sort((a,b)=>scoreOf(b)-scoreOf(a)).slice(0,5);
+  rail.innerHTML = most.length ?
+    `<p class="railhead">Long reads</p><ol class="rail">` +
+      most.map(i=>`<li data-id="${i.id}"><div><h3 class="hl">${esc(i.title)}</h3>
+        <div class="meta"><span class="badge">${esc(i.source)}</span><span class="dot">${when(i.ts)}</span></div></div></li>`).join("") +
+    `</ol>` : "";
+
+  bindCards(); bindBanner();
+}
+function bindBanner(){
+  const r=$("#retry");
+  if(r) r.onclick=()=>{ S.banner=""; loadFeeds(); };
+}
+
+function bindCards(){
+  $$("article.card, ol.rail li").forEach(el=>{
+    el.onclick = ev=>{
+      if(ev.target.closest("[data-save]")) return;
+      const it = S.items.find(i=>i.id===el.dataset.id);
+      if(it) openReader(it);
+    };
+  });
+  $$("[data-save]").forEach(b=>{
+    b.onclick = ev=>{
+      ev.stopPropagation();
+      const id=b.dataset.save;
+      if(S.saved[id]) delete S.saved[id]; else S.saved[id]=Date.now();
+      store.set(LS.saved,S.saved);
+      toast(S.saved[id]?"Saved":"Removed");
+      render();
+    };
+  });
+}
+
+function when(ts){
+  if(!ts || isNaN(ts)) return "";
+  const m = Math.round((Date.now()-ts)/60000);
+  if(m<1) return "just now";
+  if(m<60) return m+" min ago";
+  const h=Math.round(m/60); if(h<24) return h+(h===1?" hour ago":" hours ago");
+  const d=Math.round(h/24); if(d<7) return d+(d===1?" day ago":" days ago");
+  return new Date(ts).toLocaleDateString(undefined,{day:"numeric",month:"short"});
+}
+function readMins(w){ return Math.max(1, Math.round(w/220)); }
+function sameName(a,b){
+  const n=s=>String(s||"").toLowerCase().replace(/[^a-z]/g,"");
+  return !a || n(a)===n(b) || n(b).includes(n(a)) || n(a).includes(n(b));
+}
+
+/* ------------------------- 6. reader ------------------------- */
+function openReader(it){
+  S.current = it;
+  S.read[it.id]=1; store.set(LS.read,S.read);
+
+  const body = it.html && it.fullText
+    ? it.html
+    : `<p>${esc(it.text || it.standfirst || "")}</p>`;
+
+  const tail = it.demo ? "" :
+    `<hr class="rule">
+     <p class="srcbox">${it.fullText?"Published by":"Summary from"} <strong>${esc(it.source)}</strong>.
+     ${it.fullText?"Shown here from the publisher's own public feed.":"The full article stays on the publisher's site."}
+     ${it.link?`<br><a href="${esc(it.link)}" target="_blank" rel="noopener noreferrer">Read at source →</a>`:""}</p>`;
+
+  $("#rwrap").innerHTML =
+    `<p class="kicker">${esc(it.section)}</p>
+     <h1>${esc(it.title)}</h1>
+     ${it.standfirst && it.fullText ? `<p class="rstand">${esc(it.standfirst)}</p>`:""}
+     <div class="rmeta">
+       <span class="badge">${esc(it.source)}</span>
+       ${sameName(it.author,it.source)?"":`<span class="byline">${esc(it.author)}</span>`}
+       <span class="dot">${new Date(it.ts).toLocaleString(undefined,{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"})}</span>
+       ${it.words?`<span class="dot">${readMins(it.words)} min read</span>`:""}
+     </div>
+     ${it.demo?"":`<p class="srcbox" style="margin:-4px 0 20px">Gathered from ${esc(it.source)}'s public feed. ${it.link?`<a href="${esc(it.link)}" target="_blank" rel="noopener noreferrer">Read at source →</a>`:""}</p>`}
+     <div class="rbody">${body}</div>
+     ${tail}`;
+
+  const rs=$("#rSave");
+  rs.setAttribute("aria-pressed", !!S.saved[it.id]);
+  $("svg",rs).setAttribute("fill", S.saved[it.id]?"currentColor":"none");
+
+  const r=$("#reader"); r.classList.add("on"); r.setAttribute("aria-hidden","false"); r.scrollTop=0;
+  document.body.style.overflow="hidden";
+  history.pushState({reader:true},"");
+  updateProgress();
+  render();
+}
+function closeReader(){
+  const r=$("#reader"); r.classList.remove("on"); r.setAttribute("aria-hidden","true");
+  document.body.style.overflow="";
+  $("#progress").style.width="0";
+}
+function updateProgress(){
+  const r=$("#reader");
+  if(!r.classList.contains("on")){ $("#progress").style.width="0"; return; }
+  const h = r.scrollHeight - r.clientHeight;
+  $("#progress").style.width = (h>0 ? Math.min(100,(r.scrollTop/h)*100) : 0) + "%";
+}
+
+/* article → clean plain text */
+function plainText(it){
+  const lines=[it.title,"",it.source + (it.author&&it.author!==it.source?" — "+it.author:""),
+    new Date(it.ts).toLocaleString(undefined,{dateStyle:"long",timeStyle:"short"})];
+  if(it.link) lines.push(it.link);
+  lines.push("", it.text || it.standfirst || "");
+  if(!it.fullText && it.link) lines.push("", "[Summary from "+it.source+". Full article: "+it.link+"]");
+  return lines.join("\n");
+}
+async function copyArticle(){
+  if(!S.current) return;
+  const txt = plainText(S.current);
+  try{
+    if(navigator.clipboard && window.isSecureContext){ await navigator.clipboard.writeText(txt); }
+    else{
+      const ta=document.createElement("textarea");
+      ta.value=txt; ta.setAttribute("readonly",""); ta.style.position="fixed"; ta.style.top="-1000px";
+      document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0,txt.length);
+      document.execCommand("copy"); ta.remove();
+    }
+    toast("Copied — "+S.current.text.split(/\s+/).length+" words");
+  }catch(e){ toast("Couldn't copy — long-press to select instead", 2600); }
+}
+async function shareArticle(){
+  if(!S.current) return;
+  const d={title:S.current.title, text:S.current.standfirst||S.current.title, url:S.current.link||location.href};
+  try{
+    if(navigator.share){ await navigator.share(d); }
+    else if(navigator.clipboard){ await navigator.clipboard.writeText((d.url||"")+" — "+d.title); toast("Link copied"); }
+    else toast("Sharing not supported here");
+  }catch(e){ /* user cancelled */ }
+}
+
+/* ------------------------- 7. audio: OpenAI TTS + fallback ------------------ */
+const TTS = {
+  chunks:[], idx:0, playing:false, rate:1, mode:"idle", item:null,
+  durations:[], objectUrls:[]
+};
+const RATES=[1,1.25,1.5,1.75,2,0.8];
+const player = $("#player");
+
+function speechText(it){
+  const head = it.title + ". " + (it.author && it.author!==it.source ? "By "+it.author+", " : "") + it.source + ". ";
+  const body = (it.text && it.text.length>120) ? it.text : (it.standfirst||"");
+  return (head + body).replace(/\s+/g," ").trim();
+}
+function chunkText(t, limit){
+  limit = limit||3800;
+  const sentences = t.match(/[^.!?]+[.!?]+["')\]]*\s*|[^.!?]+$/g) || [t];
+  const out=[]; let buf="";
+  for(const s of sentences){
+    if((buf+s).length>limit && buf){ out.push(buf.trim()); buf=s; }
+    else buf+=s;
+  }
+  if(buf.trim()) out.push(buf.trim());
+  return out.length?out:[t.slice(0,limit)];
+}
+
+/* --- IndexedDB audio cache --- */
+const DB={db:null};
+function idb(){
+  return new Promise((res,rej)=>{
+    if(DB.db) return res(DB.db);
+    const rq=indexedDB.open("ledger-audio",1);
+    rq.onupgradeneeded=()=>{ const d=rq.result; if(!d.objectStoreNames.contains("clips")) d.createObjectStore("clips"); };
+    rq.onsuccess=()=>{ DB.db=rq.result; res(DB.db); };
+    rq.onerror=()=>rej(rq.error);
+  });
+}
+async function clipGet(k){
+  try{ const d=await idb(); return await new Promise((res,rej)=>{
+    const r=d.transaction("clips").objectStore("clips").get(k);
+    r.onsuccess=()=>res(r.result||null); r.onerror=()=>rej(r.error);
+  }); }catch(e){ return null; }
+}
+async function clipPut(k,blob){
+  try{ const d=await idb(); await new Promise((res,rej)=>{
+    const t=d.transaction("clips","readwrite"); t.objectStore("clips").put(blob,k);
+    t.oncomplete=res; t.onerror=()=>rej(t.error);
+  }); }catch(e){}
+}
+async function clipClear(){
+  try{ const d=await idb(); await new Promise(res=>{
+    const t=d.transaction("clips","readwrite"); t.objectStore("clips").clear(); t.oncomplete=res; t.onerror=res;
+  }); toast("Audio cache cleared"); }catch(e){ toast("Nothing to clear"); }
+}
+
+async function ttsFetch(text, i){
+  const key=store.get(LS.key,""), model=store.get(LS.model,"gpt-4o-mini-tts"), voice=store.get(LS.voice,"onyx");
+  const ck = "v1|"+model+"|"+voice+"|"+hash(text)+"|"+i;
+  const hit = await clipGet(ck);
+  if(hit) return hit;
+  const res = await fetch("https://api.openai.com/v1/audio/speech",{
+    method:"POST",
+    headers:{ "Authorization":"Bearer "+key, "Content-Type":"application/json" },
+    body: JSON.stringify({
+      model, voice, input:text, response_format:"mp3",
+      instructions: model==="gpt-4o-mini-tts"
+        ? "Read as a composed financial news presenter: measured pace, clear diction, natural pauses at punctuation, no theatrics."
+        : undefined
+    })
+  });
+  if(!res.ok){
+    let msg="HTTP "+res.status;
+    try{ const j=await res.json(); if(j.error&&j.error.message) msg=j.error.message; }catch(e){}
+    throw new Error(msg);
+  }
+  const blob = await res.blob();
+  clipPut(ck, blob);
+  return blob;
+}
+
+function dockShow(on){ $("#dock").classList.toggle("on", !!on); }
+function setPlayIcon(playing){
+  $("#dPlayIcon").innerHTML = playing
+    ? '<path d="M7 4h4v16H7zM13 4h4v16h-4z" fill="currentColor" stroke="none"/>'
+    : '<path d="M7 4l12 8-12 8z" fill="currentColor" stroke="none"/>';
+}
+function dockSub(t){ $("#dSub").textContent=t; }
+
+async function listen(){
+  const it=S.current; if(!it) return;
+  const key=store.get(LS.key,"");
+  stopAll();
+  TTS.item=it; TTS.idx=0; TTS.rate=1;
+  $("#dTitle").textContent=it.title;
+  $("#dRate").textContent="1.0×";
+  dockShow(true);
+
+  if(!key){ speakFallback(speechText(it)); return; }
+
+  TTS.mode="openai";
+  TTS.chunks = chunkText(speechText(it));
+  dockSub("Generating audio · 1 of "+TTS.chunks.length);
+  setPlayIcon(false);
+  try{
+    const blob = await ttsFetch(TTS.chunks[0],0);
+    playBlob(blob);
+    if(TTS.chunks.length>1) prefetch(1);
+  }catch(e){
+    dockSub("OpenAI: "+e.message);
+    toast("OpenAI TTS failed — using device voice", 3000);
+    speakFallback(speechText(it));
+  }
+}
+function prefetch(i){
+  if(i>=TTS.chunks.length) return;
+  ttsFetch(TTS.chunks[i],i).catch(()=>{});
+}
+function playBlob(blob){
+  const url=URL.createObjectURL(blob);
+  TTS.objectUrls.push(url);
+  player.src=url; player.playbackRate=TTS.rate;
+  player.play().then(()=>{
+    TTS.playing=true; setPlayIcon(true);
+    dockSub("Part "+(TTS.idx+1)+" of "+TTS.chunks.length+" · OpenAI "+store.get(LS.voice,"onyx"));
+    mediaSession();
+  }).catch(()=>{ dockSub("Tap play to start"); setPlayIcon(false); });
+}
+player.addEventListener("timeupdate",()=>{
+  if(TTS.mode!=="openai"||!player.duration) return;
+  $("#dCur").textContent=fmt(player.currentTime);
+  $("#dDur").textContent=fmt(player.duration);
+  $("#seek").value = Math.round((player.currentTime/player.duration)*1000);
+});
+player.addEventListener("ended", async ()=>{
+  if(TTS.mode!=="openai") return;
+  TTS.idx++;
+  if(TTS.idx>=TTS.chunks.length){ dockSub("Finished"); TTS.playing=false; setPlayIcon(false); return; }
+  dockSub("Loading part "+(TTS.idx+1)+" of "+TTS.chunks.length);
+  try{
+    const b=await ttsFetch(TTS.chunks[TTS.idx],TTS.idx);
+    playBlob(b); prefetch(TTS.idx+1);
+  }catch(e){ dockSub("Stopped: "+e.message); }
+});
+
+/* device-voice fallback */
+function speakFallback(text){
+  if(!("speechSynthesis" in window)){ dockSub("No speech support on this browser"); return; }
+  TTS.mode="speech"; TTS.chunks=chunkText(text,600); TTS.idx=0;
+  dockSub("Device voice · add an API key in Settings for studio quality");
+  $("#dDur").textContent="—"; $("#dCur").textContent="—";
+  speakNext();
+}
+function speakNext(){
+  if(TTS.idx>=TTS.chunks.length){ TTS.playing=false; setPlayIcon(false); dockSub("Finished"); return; }
+  const u=new SpeechSynthesisUtterance(TTS.chunks[TTS.idx]);
+  u.rate=TTS.rate; u.pitch=1;
+  const vs=speechSynthesis.getVoices();
+  const pref=vs.find(v=>/en-(GB|US)/i.test(v.lang)&&/(daniel|serena|samantha|google uk)/i.test(v.name))||vs.find(v=>/^en/i.test(v.lang));
+  if(pref) u.voice=pref;
+  u.onend=()=>{ TTS.idx++; if(TTS.playing) speakNext(); };
+  TTS.playing=true; setPlayIcon(true);
+  speechSynthesis.speak(u);
+  const pct = Math.round((TTS.idx/TTS.chunks.length)*1000);
+  $("#seek").value = pct;
+}
+function stopAll(){
+  try{ player.pause(); }catch(e){}
+  try{ speechSynthesis.cancel(); }catch(e){}
+  TTS.objectUrls.forEach(u=>{ try{URL.revokeObjectURL(u);}catch(e){} });
+  TTS.objectUrls=[];
+  TTS.playing=false; TTS.mode="idle"; setPlayIcon(false);
+  $("#seek").value=0; $("#dCur").textContent="0:00"; $("#dDur").textContent="0:00";
+}
+function togglePlay(){
+  if(TTS.mode==="openai"){
+    if(player.paused){ player.play(); TTS.playing=true; setPlayIcon(true); }
+    else{ player.pause(); TTS.playing=false; setPlayIcon(false); }
+  }else if(TTS.mode==="speech"){
+    if(speechSynthesis.speaking && !speechSynthesis.paused){ speechSynthesis.pause(); TTS.playing=false; setPlayIcon(false); }
+    else if(speechSynthesis.paused){ speechSynthesis.resume(); TTS.playing=true; setPlayIcon(true); }
+    else { TTS.playing=true; speakNext(); }
+  }else if(S.current){ listen(); }
+}
+function nudge(sec){
+  if(TTS.mode==="openai" && player.duration){
+    player.currentTime = Math.max(0, Math.min(player.duration, player.currentTime+sec));
+  }else if(TTS.mode==="speech"){
+    speechSynthesis.cancel();
+    TTS.idx = Math.max(0, Math.min(TTS.chunks.length-1, TTS.idx + (sec>0?1:-1)));
+    TTS.playing=true; speakNext();
+  }
+}
+function fmt(s){ s=Math.max(0,Math.floor(s||0)); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); }
+function mediaSession(){
+  if(!("mediaSession" in navigator) || !TTS.item) return;
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: TTS.item.title, artist: TTS.item.author||TTS.item.source, album: "The Ledger"
+  });
+  const A=(k,f)=>{ try{ navigator.mediaSession.setActionHandler(k,f); }catch(e){} };
+  A("play",()=>togglePlay()); A("pause",()=>togglePlay());
+  A("seekbackward",()=>nudge(-15)); A("seekforward",()=>nudge(15));
+  A("previoustrack",()=>nudge(-15)); A("nexttrack",()=>nudge(15));
+  A("stop",()=>{ stopAll(); dockShow(false); });
+}
+
+/* ------------------------- 8. settings & chrome ------------------------- */
+function applyTheme(){
+  const t=store.get(LS.theme,"auto");
+  const dark = t==="dark" || (t==="auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+  document.documentElement.dataset.theme = dark?"dark":"light";
+  $$("#segTheme button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.theme===t));
+}
+function applySize(){
+  const s=store.get(LS.size,1);
+  document.documentElement.style.setProperty("--fs", s+"rem");
+  $$("#segSize button").forEach(b=>b.setAttribute("aria-pressed", Number(b.dataset.size)===Number(s)));
+}
+function renderFeedStatus(){
+  const el=$("#feedstatus"); if(!el) return;
+  el.innerHTML = S.feedStatus.length
+    ? S.feedStatus.map(f=>`<div><span>${esc(f.n)}</span><span class="st">${f.ok?f.count+" items":"unavailable"}</span></div>`).join("")
+    : SOURCES.map(s=>`<div><span>${esc(s.n)}</span><span class="st">not fetched yet</span></div>`).join("");
+}
+function renderSecNav(){
+  $("#secnav").innerHTML = SECTIONS.map(s=>
+    `<button class="seclink tap" data-sec="${esc(s)}" aria-current="${s===S.section}">${esc(s)}</button>`).join("");
+  $$("#secnav .seclink").forEach(b=>b.onclick=()=>{
+    S.section=b.dataset.sec; renderSecNav(); render(); window.scrollTo({top:0,behavior:"smooth"});
+  });
+}
+function costHint(){
+  const m=store.get(LS.model,"gpt-4o-mini-tts");
+  const per1k = m==="gpt-4o-mini-tts" ? 0.012 : (m==="tts-1-hd" ? 0.030 : 0.015);
+  $("#costHint").textContent = "Roughly $"+(per1k*8).toFixed(2)+" per 10 long articles at current list pricing — audio is cached, so re-listening is free.";
+}
+
+/* ------------------------- 9. wiring ------------------------- */
+function boot(){
+  $("#datestrip").textContent =
+    new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long",year:"numeric"}) + " · Free financial journalism, gathered";
+
+  applyTheme(); applySize(); renderSecNav(); renderFeedStatus(); costHint();
+
+  $("#apikey").value = store.get(LS.key,"");
+  $("#model").value  = store.get(LS.model,"gpt-4o-mini-tts");
+  $("#voice").value  = store.get(LS.voice,"onyx");
+
+  // header
+  $("#btnSearch").onclick = ()=>{
+    const w=$("#searchwrap"); w.classList.toggle("on");
+    if(w.classList.contains("on")) $("#q").focus(); else { $("#q").value=""; S.query=""; render(); }
+  };
+  $("#q").oninput = e=>{ S.query=e.target.value.trim(); render(); };
+  $("#btnSaved").onclick = ()=>{ S.section="Saved"; renderSecNav(); render(); window.scrollTo({top:0}); };
+  $("#btnTheme").onclick = ()=>{
+    const now=document.documentElement.dataset.theme==="dark"?"light":"dark";
+    store.set(LS.theme,now); applyTheme(); toast(now==="dark"?"Dark mode":"Light mode",1200);
+  };
+  $("#btnSettings").onclick = ()=>{ renderFeedStatus(); $("#settings").classList.add("on"); };
+  $$("[data-close]").forEach(el=>el.onclick=()=>$("#settings").classList.remove("on"));
+
+  // settings
+  $("#saveSettings").onclick = ()=>{
+    const k=$("#apikey").value.trim();
+    if(k && !/^sk-/.test(k)){ toast("That doesn't look like an OpenAI key",2400); return; }
+    store.set(LS.key,k); store.set(LS.model,$("#model").value); store.set(LS.voice,$("#voice").value);
+    costHint(); $("#settings").classList.remove("on");
+    toast(k?"Saved — Listen will use OpenAI":"Saved — Listen will use the device voice");
+  };
+  $("#model").onchange = costHint;
+  $("#clearAudio").onclick = clipClear;
+  $$("#segSize button").forEach(b=>b.onclick=()=>{ store.set(LS.size,Number(b.dataset.size)); applySize(); });
+  $$("#segTheme button").forEach(b=>b.onclick=()=>{ store.set(LS.theme,b.dataset.theme); applyTheme(); });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change",applyTheme);
+
+  // reader
+  $("#rBack").onclick = ()=>{ if(history.state&&history.state.reader) history.back(); else closeReader(); };
+  $("#rCopy").onclick = copyArticle;
+  $("#rShare").onclick = shareArticle;
+  $("#rListen").onclick = listen;
+  $("#rSave").onclick = ()=>{
+    const it=S.current; if(!it) return;
+    if(S.saved[it.id]) delete S.saved[it.id]; else S.saved[it.id]=Date.now();
+    store.set(LS.saved,S.saved);
+    $("#rSave").setAttribute("aria-pressed", !!S.saved[it.id]);
+    $("svg",$("#rSave")).setAttribute("fill", S.saved[it.id]?"currentColor":"none");
+    toast(S.saved[it.id]?"Saved":"Removed"); render();
+  };
+  $("#reader").addEventListener("scroll", updateProgress, {passive:true});
+  window.addEventListener("popstate", ()=>{ if($("#reader").classList.contains("on")) closeReader(); });
+
+  // dock
+  $("#dPlay").onclick=togglePlay;
+  $("#dBack15").onclick=()=>nudge(-15);
+  $("#dFwd15").onclick=()=>nudge(15);
+  $("#dClose").onclick=()=>{ stopAll(); dockShow(false); };
+  $("#dRate").onclick=()=>{
+    const i=(RATES.indexOf(TTS.rate)+1)%RATES.length;
+    TTS.rate=RATES[i]; player.playbackRate=TTS.rate;
+    $("#dRate").textContent=TTS.rate.toFixed(TTS.rate%1?2:1).replace(/0$/,"")+"×";
+    if(TTS.mode==="speech"&&TTS.playing){ speechSynthesis.cancel(); speakNext(); }
+  };
+  $("#seek").oninput=e=>{
+    if(TTS.mode==="openai"&&player.duration) player.currentTime=(e.target.value/1000)*player.duration;
+  };
+
+  // pull to refresh
+  let y0=null;
+  window.addEventListener("touchstart",e=>{ y0 = (window.scrollY<=0 && !$("#reader").classList.contains("on")) ? e.touches[0].clientY : null; },{passive:true});
+  window.addEventListener("touchmove",e=>{
+    if(y0===null) return;
+    const dy=e.touches[0].clientY-y0;
+    $("#pullIndicator").classList.toggle("on", dy>70);
+  },{passive:true});
+  window.addEventListener("touchend",e=>{
+    if(y0!==null && $("#pullIndicator").classList.contains("on")){
+      $("#pullIndicator").classList.remove("on"); loadFeeds();
+    }
+    y0=null;
+  },{passive:true});
+
+  // keyboard niceties on desktop
+  document.addEventListener("keydown",e=>{
+    if(e.key==="Escape"){ if($("#settings").classList.contains("on")) $("#settings").classList.remove("on"); else if($("#reader").classList.contains("on")) closeReader(); }
+    if(e.key===" " && $("#dock").classList.contains("on")){ e.preventDefault(); togglePlay(); }
+  });
+
+  // service worker (optional file; ignored when absent, e.g. file://)
+  if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+    navigator.serviceWorker.register("sw.js").catch(()=>{});
+  }
+
+  loadFeeds();
+  setInterval(()=>loadFeeds({silent:true}), 30*60*1000);
+  document.addEventListener("visibilitychange",()=>{
+    if(!document.hidden){
+      const c=store.get(LS.cache,null);
+      if(!c || Date.now()-c.at > 30*60*1000) loadFeeds({silent:true});
+    }
+  });
+}
+
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",boot);
+else boot();
+</script>
+</body>
+</html>
