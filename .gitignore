@@ -1,0 +1,7 @@
+# captured publisher feeds - regenerate with ./fetch_fixtures.sh, don't commit
+fixtures/
+
+# test artefacts
+shot-*.png
+__pycache__/
+.DS_Store
