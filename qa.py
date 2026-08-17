@@ -347,12 +347,14 @@ async def main():
         # launch plumbing: feedback link present; analytics silent until a code is set
         fb = await page.evaluate("""() => !!document.querySelector('#settings a[href*="github.com/sudipbha/the-ledger/issues"]')""")
         ok("feedback link in settings", fb)
-        silent = await page.evaluate("""() => {
-          ping('/qa-test');
-          return GC_SITE === "" &&
-            performance.getEntriesByType('resource').filter(r=>r.name.includes('goatcounter')).length === 0;
+        pixel_only = await page.evaluate("""() => {
+          // image-ping only, single host, and never a script: the mechanism is
+          // inspectable because ping() is the sole sender
+          return ping.toString().includes(".goatcounter.com/count") &&
+                 ping.toString().includes("new Image()") &&
+                 !document.querySelector('script[src]:not([src="content.js"])');
         }""")
-        ok("analytics sends nothing until a site code is set", silent)
+        ok("analytics is an image ping to goatcounter only, no scripts", pixel_only)
 
         # front page screenshot after a successful-ish state
         await page.evaluate("document.querySelector('#settings').classList.remove('on')")
