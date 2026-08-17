@@ -1,0 +1,49 @@
+name: Deploy to GitHub Pages
+
+# The app is a folder of static files, so there is nothing to build — this only
+# picks out the files that belong on the web (the README and the test suites stay
+# behind, as the README says) and hands them to Pages.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # enablement: true switches Pages on the first time this runs, so the site
+      # does not have to be turned on by hand in the repository settings
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Assemble the site
+        run: |
+          mkdir -p _site
+          cp index.html sw.js manifest.webmanifest _site/
+          cp icon-180.png icon-192.png icon-512.png icon-maskable-512.png _site/
+          touch _site/.nojekyll
+          ls -la _site
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
