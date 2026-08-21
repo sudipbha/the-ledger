@@ -3,7 +3,7 @@
    doesn't cost you your reading. Feeds and audio are cached separately
    (localStorage / IndexedDB) by the app. */
 
-const VERSION = "2";
+const VERSION = "4";
 const SHELL = "ledger-shell-v" + VERSION;
 const RUNTIME = "ledger-runtime-v" + VERSION;
 const FILES = [
