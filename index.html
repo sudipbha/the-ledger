@@ -107,7 +107,9 @@ header.masthead{
 .wordmark{font-family:var(--display);font-weight:800;font-size:1.4rem;letter-spacing:-.02em;line-height:1;flex:1;min-width:0}
 .wordmark span{color:var(--accent-2)}
 .datestrip{font-family:var(--ui);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);padding:0 14px 6px;max-width:1100px;margin:0 auto}
-.icobtn{width:44px;height:44px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-2)}
+.icobtn{width:44px;height:44px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-2);border:1px solid transparent}
+#btnRefresh,#rRefresh{color:var(--ink);background:var(--chip);border-color:var(--rule);box-shadow:0 1px 6px rgba(18,16,14,.08)}
+#btnRefresh:active,#rRefresh:active{background:var(--paper-2)}
 .icobtn:active{background:var(--paper-2)}
 .icobtn svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .icobtn.refreshing svg{animation:ledger-spin .7s linear infinite}
